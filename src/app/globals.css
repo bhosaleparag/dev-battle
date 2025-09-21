@@ -1,0 +1,450 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+:root {
+  --black: #000;
+  --gray-08: #141414;
+  --gray-10: #1A1A1A;
+  --gray-15: #262626;
+  --gray-20: #333333;
+  --gray-30: #4D4D4D;
+  --gray-40: #666666;
+  --gray-50: #808080;
+  --gray-60: #999999;
+  --white: #fff;
+  --white-90: #E4E4E7;
+  --white-95: #F1F1F3;
+  --white-97: #F7F7F8;
+  --white-99: #FCFCFD;
+  --purple-60: #703BF7;
+  --purple-65: #8254F8;
+  --purple-70: #946CF9;
+  --purple-75: #A685FA;
+  --purple-90: #DBCEFD;
+  --purple-95: #EDE7FE;
+  --purple-97: #F4F0FE;
+  --purple-99: #FBFAFF;
+  --background: var(--color-gray-08);
+  --foreground: var(--color-gray-10);
+  --radius: 0.625rem;
+}
+
+@theme {
+  --color-black: #000;
+  --color-gray-08: #141414;
+  --color-gray-10: #1a1a1a;
+  --color-gray-15: #262626;
+  --color-gray-20: #333333;
+  --color-gray-30: #4d4d4d;
+  --color-gray-40: #666666;
+  --color-gray-50: #808080;
+  --color-gray-60: #999999;
+  --color-white: #fff;
+  --color-white-90: #e4e4e7;
+  --color-white-95: #f1f1f3;
+  --color-white-97: #f7f7f8;
+  --color-white-99: #fcfcfd;
+  --color-purple-60: #703bf7;
+  --color-purple-65: #8254f8;
+  --color-purple-70: #946cf9;
+  --color-purple-75: #a685fa;
+  --color-purple-90: #dbcefd;
+  --color-purple-95: #ede7fe;
+  --color-purple-97: #f4f0fe;
+  --color-purple-99: #fbfaff;
+  --color-background: var(--color-gray-08);
+  --color-foreground: var(--color-gray-10);
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  height: 100%;
+}
+
+body {
+  color: var(--white);
+  font-family: urbanist, Helvetica, sans-serif;
+  font-weight: 500;
+  letter-spacing: 1px;
+  height: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+@media (prefers-color-scheme: light) {
+  html {
+    color-scheme: light;
+  }
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+/* global.css or styles.css */
+.scrollbar-custom::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.scrollbar-custom::-webkit-scrollbar-thumb {
+  border-radius: 4px;
+  border: 2px solid var(--color-gray-08);
+}
+
+/* Firefox scrollbar styling */
+.scrollbar-custom {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-purple-60) transparent;
+}
+
+
+.itemCenter{
+  display: flex;
+  justify-content: center;
+  align-items: center
+}
+
+input[type="checkbox"]:checked {
+  background-color: #703BF7;
+  border-color: #703BF7;
+}
+
+input[type="radio"]:checked {
+  background-color: #703BF7;
+  border-color: #703BF7;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@layer components {
+  /* typography css */
+  .typo-h1 {
+    @apply text-4xl font-bold leading-tight;
+  }
+  .typo-h2 {
+    @apply text-3xl font-semibold leading-snug;
+  }
+  .typo-h3 {
+    @apply text-2xl font-semibold leading-snug;
+  }
+  .typo-body {
+    @apply text-base leading-relaxed;
+  }
+  .typo-small {
+    @apply text-sm leading-snug;
+  }
+
+  /* navigation button css */
+  .nav-btn {
+    @apply text-[var(--foreground)] px-4 py-2 rounded-2xl border-0 cursor-pointer text-center transition-[background] duration-300 ease-in-out;
+  }
+  .nav-btn:disabled {
+    @apply cursor-not-allowed opacity-50;
+  }
+  .nav-btn:hover {
+    @apply bg-[var(--btn-hover)] font-medium;
+  }
+  .nav-btn-active {
+    @apply bg-[var(--btn-hover)] font-semibold;
+  }
+
+  /* button css */
+  .btn {
+    @apply px-4 py-2 text-[var(--foreground)] rounded-lg bg-gray-300 font-medium transition-colors duration-300;
+  }
+  .btn:hover {
+    box-shadow: 0 0 8px theme('colors.gray.300');
+  }
+  .btn:disabled {
+    @apply opacity-50 cursor-not-allowed;
+  }
+}
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.bg-grid {
+  background-image: 
+    linear-gradient(to right, var(--gray-15) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--gray-15) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+ /* 1. Animated Grid with Pulse */
+.bg-animated-grid {
+  background-image: 
+    linear-gradient(to right, rgba(112, 59, 247, 0.1) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(112, 59, 247, 0.1) 1px, transparent 1px);
+  background-size: 40px 40px;
+  /* animation: gridPulse 4s ease-in-out infinite; */
+}
+
+@keyframes gridPulse {
+  0%, 100% { 
+    background-image: 
+      linear-gradient(to right, rgba(112, 59, 247, 0.1) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(112, 59, 247, 0.1) 1px, transparent 1px);
+  }
+  50% { 
+    background-image: 
+      linear-gradient(to right, rgba(112, 59, 247, 0.3) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(112, 59, 247, 0.3) 1px, transparent 1px);
+  }
+}
+
+.bg-particles {
+  background: var(--gray-10);
+  position: relative;
+}
+
+.particle {
+  position: absolute;
+  background: var(--purple-60);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: float 6s ease-in-out infinite;
+}
+
+.particle:nth-child(1) { width: 6px; height: 6px; top: 20%; left: 10%; animation-delay: 0s; }
+.particle:nth-child(2) { width: 8px; height: 8px; top: 80%; left: 20%; animation-delay: 1s; }
+.particle:nth-child(3) { width: 5px; height: 5px; top: 40%; left: 70%; animation-delay: 2s; }
+.particle:nth-child(4) { width: 7px; height: 7px; top: 60%; left: 90%; animation-delay: 3s; }
+.particle:nth-child(5) { width: 6px; height: 6px; top: 10%; left: 50%; animation-delay: 4s; }
+.particle:nth-child(6) { width: 9px; height: 9px; top: 90%; left: 60%; animation-delay: 5s; }
+.particle:nth-child(7) { width: 5px; height: 5px; top: 30%; left: 40%; animation-delay: 1.5s; }
+.particle:nth-child(8) { width: 7px; height: 7px; top: 50%; left: 85%; animation-delay: 3.5s; }
+.particle:nth-child(9) { width: 8px; height: 8px; top: 75%; left: 15%; animation-delay: 2.5s; }
+.particle:nth-child(10) { width: 6px; height: 6px; top: 5%; left: 75%; animation-delay: 4.5s; }
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.3; }
+  50% { transform: translateY(-20px) rotate(180deg); opacity: 0.8; }
+}
+
+/* 3. Gradient Waves */
+.bg-waves {
+  background: var(--gray-10);
+  position: relative;
+  overflow: hidden;
+}
+
+.wave {
+  position: absolute;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, 
+    transparent 30%, 
+    rgba(112, 59, 247, 0.1) 50%, 
+    transparent 70%);
+  animation: wave 8s linear infinite;
+}
+
+.wave:nth-child(2) {
+  background: linear-gradient(-45deg, 
+      transparent 30%, 
+      rgba(148, 108, 249, 0.05) 50%, 
+      transparent 70%);
+  animation-delay: -2s;
+  animation-duration: 12s;
+}
+
+@keyframes wave {
+    0% { transform: translateX(-50%) translateY(-50%) rotate(0deg); }
+    100% { transform: translateX(-50%) translateY(-50%) rotate(360deg); }
+}
+
+
+/* 5. Geometric Shapes */
+.bg-geometric {
+  background: var(--gray-10, #f0f0f0); /* Added a fallback background color */
+  position: relative;
+  overflow: hidden;
+}
+
+.shape {
+  position: absolute;
+  /* Default style is an outline */
+  border: 2px solid rgba(112, 59, 247, 0.5); 
+  animation: geometric 12s ease-in-out infinite;
+}
+
+@keyframes geometric {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 0.4;
+  }
+  50% {
+    transform: scale(1.3) rotate(180deg);
+    opacity: 0.9;
+  }
+}
+
+/* --- Shape Definitions --- */
+
+/* 1. Circle */
+.shape:nth-child(1) {
+  width: 60px; height: 60px;
+  top: 20%; left: 15%;
+  border-radius: 50%;
+  animation-delay: 0s;
+}
+
+/* 2. Square */
+.shape:nth-child(2) {
+  width: 40px; height: 40px;
+  top: 60%; left: 70%;
+  animation-delay: 1.5s;
+}
+
+/* 3. Diamond */
+.shape:nth-child(3) {
+  width: 50px; height: 50px;
+  top: 80%; left: 20%;
+  transform: rotate(45deg);
+  animation-delay: 3s;
+}
+
+/* 4. Triangle (using clip-path) */
+.shape:nth-child(4) {
+  width: 50px; height: 50px;
+  top: 35%; left: 50%;
+  border: none; /* Override border */
+  background: rgba(112, 59, 247, 0.5); /* Use background instead */
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+  animation-delay: 4.5s;
+}
+
+/* 5. Hexagon (using clip-path) */
+.shape:nth-child(5) {
+  width: 70px; height: 70px;
+  top: 10%; left: 80%;
+  border: none;
+  background: rgba(112, 59, 247, 0.5);
+  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+  animation-delay: 6s;
+}
+
+/* 6. Pentagon (using clip-path) */
+.shape:nth-child(6) {
+  width: 65px; height: 65px;
+  top: 75%; left: 45%;
+  border: none;
+  background: rgba(112, 59, 247, 0.5);
+  clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
+  animation-delay: 7.5s;
+}
+
+/* 7. Large Circle */
+.shape:nth-child(7) {
+  width: 100px; height: 100px;
+  top: 50%; left: 5%;
+  border-radius: 50%;
+  animation-delay: 9s;
+}
+
+/* 8. Small Circle */
+.shape:nth-child(8) {
+  width: 30px; height: 30px;
+  top: 25%; left: 90%;
+  border-radius: 50%;
+  animation-delay: 10.5s;
+}
+
+/* 9. Small Diamond */
+.shape:nth-child(9) {
+  width: 35px; height: 35px;
+  top: 5%; left: 40%;
+  transform: rotate(45deg);
+  animation-delay: 1s;
+}
+
+/* 10. Small Hexagon (using clip-path) */
+.shape:nth-child(10) {
+  width: 45px; height: 45px;
+  top: 90%; left: 85%;
+  border: none;
+  background: rgba(112, 59, 247, 0.5);
+  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+  animation-delay: 2.5s;
+}

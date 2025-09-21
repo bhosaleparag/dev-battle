@@ -1,0 +1,198 @@
+'use client';
+
+import React, { useState, useMemo } from 'react';
+import { Search, Code, Bug, Puzzle } from 'lucide-react';
+import SectionHeader from './components/SectionHeader';
+import QuizCard from './QuizCard';
+
+const SearchBar = ({ value, onChange, placeholder }) => {
+  return (
+    <div className="relative">
+      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-50" />
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full pl-10 pr-4 py-2.5 bg-gray-10 border border-gray-20 rounded-lg text-sm text-white placeholder:text-gray-50 focus:outline-none focus:border-purple-60/50 focus:ring-1 focus:ring-purple-60/20 transition-all"
+      />
+    </div>
+  );
+};
+
+export default function CodingChallengesPlatform({quizzes=[], debuggers=[], problems=[]}) {
+  const [quizSearch, setQuizSearch] = useState('');
+  const [debuggerSearch, setDebuggerSearch] = useState('');
+  const [problemSearch, setProblemSearch] = useState('');
+  const [dateFilters, setDateFilters] = useState({
+    Quiz: { startDate: null, endDate: null, type: 'all' },
+    Debugger: { startDate: null, endDate: null, type: 'all' },
+    Problem: { startDate: null, endDate: null, type: 'all' }});
+  const [showAll, setShowAll] = useState({ quizzes: false, debuggers: false, problems: false});
+
+  // Filter quizzes
+  const filteredQuizzes = useMemo(() => {
+    const filtered = quizzes.filter(quiz =>
+      quiz.title.toLowerCase().includes(quizSearch.toLowerCase()) ||
+      quiz.description.toLowerCase().includes(quizSearch.toLowerCase())
+    );
+    return showAll.quizzes ? filtered : filtered.slice(0, 3);
+  }, [quizzes, quizSearch, showAll.quizzes]);
+
+  // Filter debuggers
+  const filteredDebuggers = useMemo(() => {
+    const filtered = debuggers.filter(debuggerItem =>
+      debuggerItem.title.toLowerCase().includes(debuggerSearch.toLowerCase()) ||
+      debuggerItem.description.toLowerCase().includes(debuggerSearch.toLowerCase())
+    );
+    return showAll.debuggers ? filtered : filtered.slice(0, 3);
+  }, [debuggers, debuggerSearch, showAll.debuggers]);
+
+  // Filter problems
+  const filteredProblems = useMemo(() => {
+    const filtered = problems.filter(problem =>
+      problem.title.toLowerCase().includes(problemSearch.toLowerCase()) ||
+      problem.description.toLowerCase().includes(problemSearch.toLowerCase())
+    );
+    return showAll.problems ? filtered : filtered.slice(0, 3);
+  }, [problems, problemSearch, showAll.problems]);
+
+  return (
+    <div className="px-6 py-8">
+      <div className="max-w-7xl mx-auto space-y-12">
+        {/* Daily Quizzes Section */}
+        <section>
+          <SectionHeader
+            title="Daily Quizzes"
+            description="Daily coding quizzes. to test your skills and keep you sharp."
+            onViewAll={() => setShowAll(prev=>({...prev, quizzes: !prev.quizzes}))}
+            showViewAll={!showAll.quizzes && quizzes.length > 3}
+          />
+          
+          <div className="mb-6">
+            <SearchBar
+              value={quizSearch}
+              onChange={setQuizSearch}
+              placeholder="Search quizzes..."
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {filteredQuizzes.length > 0 ? (
+              filteredQuizzes.map((quiz) => (
+                <QuizCard
+                  key={quiz._id}
+                  routePath="quiz"
+                  title={quiz.title}
+                  description={quiz.description}
+                  id={quiz._id}
+                  isDaily={quiz.daily}
+                  icon={Puzzle}
+                />
+              ))
+            ) : (
+              <p className="col-span-full text-center py-8 text-gray-50">No quizzes found</p>
+            )}
+          </div>
+
+          {showAll.quizzes && quizzes.length > 3 && (
+            <button
+              onClick={() => setShowAll(prev=>({...prev, quizzes: false}))}
+              className="mt-4 text-sm text-purple-60 hover:text-purple-70 transition-colors"
+            >
+              Show Less
+            </button>
+          )}
+        </section>
+
+        {/* Debuggers Section */}
+        <section>
+          <SectionHeader
+            title="Debuggers"
+            description="Fix buggy code challenges in real-time and improve your debugging skills."
+            onViewAll={() => setShowAll(prev=>({...prev, debuggers: !prev.debuggers}))}
+            showViewAll={!showAll.debuggers && debuggers.length > 3}
+          />
+          
+          <div className="mb-6">
+            <SearchBar
+              value={debuggerSearch}
+              onChange={setDebuggerSearch}
+              placeholder="Search debugger challenges..."
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {filteredDebuggers.length > 0 ? (
+              filteredDebuggers.map((tempDebugg) => (
+                <QuizCard
+                  key={tempDebugg._id}
+                  routePath="debuggers"
+                  title={tempDebugg.title}
+                  description={tempDebugg.description}
+                  id={tempDebugg._id}
+                  difficulty={tempDebugg.difficulty}
+                  icon={Bug}
+                />
+              ))
+            ) : (
+              <p className="col-span-full text-center py-8 text-gray-50">No debugger challenges found</p>
+            )}
+          </div>
+          {showAll.debuggers && debuggers.length > 3 && (
+            <button
+              onClick={() => setShowAll(prev=>({...prev, debuggers: false}))}
+              className="mt-4 text-sm text-purple-60 hover:text-purple-70 transition-colors"
+            >
+              Show Less
+            </button>
+          )}
+        </section>
+
+        {/* Problems Section */}
+        <section>
+          <SectionHeader
+            title="Problems"
+            description="Solve algorithmic coding problems and master data structures."
+            onViewAll={() => setShowAll(prev=>({...prev, problems: !prev.problems}))}
+            showViewAll={!showAll.problems && problems.length > 3}
+          />
+          
+          <div className="mb-6">
+            <SearchBar
+              value={problemSearch}
+              onChange={setProblemSearch}
+              placeholder="Search problems..."
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {filteredProblems.length > 0 ? (
+              filteredProblems.map((problem) => (
+                <QuizCard
+                  key={problem._id}
+                  routePath="problem"
+                  title={problem.title}
+                  description={problem.description}
+                  id={problem._id}
+                  difficulty={problem.difficulty}
+                  icon={Code}
+                />
+              ))
+            ) : (
+              <p className="col-span-full text-center py-8 text-gray-50">No problems found</p>
+            )}
+          </div>
+          {showAll.problems && problems.length > 3 && (
+            <button
+              onClick={() => setShowAll(prev=>({...prev, problems: false}))}
+              className="mt-4 text-sm text-purple-60 hover:text-purple-70 transition-colors"
+            >
+              Show Less
+            </button>
+          )}
+        </section>
+      </div>
+    </div>
+  );
+}
