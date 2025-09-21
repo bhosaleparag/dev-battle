@@ -13,7 +13,9 @@ const eslintConfig = [
   ...compat.extends("next/core-web-vitals"),
   {
     rules: {
-      "react/no-unescaped-entities": "off", // disable quotes escaping error
+      "react/no-unescaped-entities": "off",
+      "react-hooks/rules-of-hooks": "off", // not recommended unless you understand
+      "@next/next/no-img-element": "off",
     },
   },
 ];

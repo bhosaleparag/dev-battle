@@ -872,7 +872,7 @@ export default function AccountSettings() {
 
   useEffect(() => {
     loadUserData();
-  }, [user]);
+  }, [user, loadUserData]);
 
   return (
     <div className="flex h-[90vh] overflow-hidden">

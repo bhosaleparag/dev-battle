@@ -238,7 +238,7 @@ export default function CodeEditor ({ data, match='solo' }){
     }, MAX_LIMIT_DEBUGGER);
 
     return () => clearInterval(interval);
-  }, [match]);
+  }, [match, result?.success, router, setResult]);
   
   return (
     <div className="min-h-screen">

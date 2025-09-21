@@ -101,12 +101,7 @@ export const useSocket = (userId, username) => {
 
   // Socket event listener hook
   const useSocketEvent = useCallback((event, handler) => {
-    useEffect(() => {
-      if (socket && isConnected) {
-        socket.on(event, handler);
-        return () => socket.off(event, handler);
-      }
-    }, [socket, isConnected, event, handler]);
+    useSocketEvent(socket, isConnected, event, handler);
   }, [socket, isConnected]);
 
   // Emit socket event

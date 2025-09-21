@@ -36,7 +36,7 @@ const Leaderboard = () => {
         unsubscribeFromUpdates(filters.gameType);
       }
     };
-  }, [isConnected, filters]);
+  }, [isConnected, filters, getLeaderboard, getLeaderboardStats, getMyPosition, subscribeToUpdates, unsubscribeFromUpdates]);
 
   const handleFilterChange = (key, value) => {
     setFilters(prev => ({ ...prev, [key]: value }));

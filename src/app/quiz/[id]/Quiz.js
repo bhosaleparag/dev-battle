@@ -36,7 +36,7 @@ export default function QuizApp({ quizData }) {
     } else if(gameState === 'results') {
       saveQuizResult(user?.uid, quizData?._id, score)
     }
-  }, [timeLeft, gameState]);
+  }, [timeLeft, gameState, saveQuizResult, quizData?._id, user?.uid, ]);
 
   const startQuiz = () => {
     setGameState('playing');
