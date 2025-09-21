@@ -22,10 +22,6 @@ export default function AccountSettings() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
   const fileInputRef = useRef(null);
-
-  if(!user?.uid) return router.push('/')
-  const docRef = doc(db, 'users', user.uid);
-
   // Profile state
   const [profile, setProfile] = useState({
     username: '',
@@ -40,7 +36,7 @@ export default function AccountSettings() {
     showEmail: false,
     showStats: true
   });
-
+  
   // Security state
   const [security, setSecurity] = useState({
     currentPassword: '',
@@ -48,7 +44,7 @@ export default function AccountSettings() {
     confirmPassword: '',
     twoFactorEnabled: false
   });
-
+  
   // Preferences state
   const [preferences, setPreferences] = useState({
     theme: 'dark',
@@ -60,7 +56,7 @@ export default function AccountSettings() {
     autoJoinMatches: false,
     showOnlineStatus: true
   });
-
+  
   // Notifications state
   const [notifications, setNotifications] = useState({
     emailNotifications: true,
@@ -71,7 +67,7 @@ export default function AccountSettings() {
     weeklyDigest: true,
     marketing: false
   });
-
+  
   // Privacy state
   const [privacy, setPrivacy] = useState({
     profileVisibility: 'public', // public, friends, private
@@ -82,9 +78,8 @@ export default function AccountSettings() {
     analytics: true
   });
 
-  useEffect(() => {
-    loadUserData();
-  }, [user]);
+  if(!user?.uid) return router.push('/')
+  const docRef = doc(db, 'users', user.uid);
 
   const loadUserData = async () => {
     if (!user) return;
@@ -874,6 +869,10 @@ export default function AccountSettings() {
     }
   };
 
+  useEffect(() => {
+    loadUserData();
+  }, [user]);
+
   return (
     <div className="flex h-[90vh] overflow-hidden">
       <div className="bg-gray-08 shadow-2xl w-full flex overflow-hidden">
@@ -935,32 +934,3 @@ export default function AccountSettings() {
     </div>
   );
 }
-
-// Usage in your main component:
-/*
-import AccountSettings from './components/AccountSettings';
-
-// In your component:
-const [showSettings, setShowSettings] = useState(false);
-
-// Render the settings modal:
-{showSettings && (
-  <AccountSettings 
-    user={user} 
-    onClose={() => setShowSettings(false)} 
-  />
-)}
-*/
-
-// Additional CSS for custom checkbox and radio styles (add to your global CSS):
-/*
-input[type="checkbox"]:checked {
-  background-color: #703BF7;
-  border-color: #703BF7;
-}
-
-input[type="radio"]:checked {
-  background-color: #703BF7;
-  border-color: #703BF7;
-}
-*/
