@@ -15,6 +15,7 @@ import {
 import Typography from '@/components/ui/Typography';
 import Input from '@/components/ui/Input';
 import Modal from '@/components/ui/Dialog';
+import Image from 'next/image';
 
 const Friends = () => {
   const [activeTab, setActiveTab] = useState('friends');
@@ -260,7 +261,7 @@ const Friends = () => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
                     <div className="relative">
-                      <img
+                      <Image
                         src={friend.avatar}
                         alt={friend.name}
                         className="w-12 h-12 rounded-full object-cover"
@@ -315,7 +316,7 @@ const Friends = () => {
               <div key={request.id} className="rounded-lg shadow-sm p-6 border border-gray-15 hover:shadow-md transition duration-200">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
-                    <img
+                    <Image
                       src={request.avatar}
                       alt={request.name}
                       className="w-12 h-12 rounded-full object-cover"
@@ -370,7 +371,7 @@ const Friends = () => {
               <div key={suggestion.id} className="rounded-lg shadow-sm p-6 border border-gray-15 hover:shadow-md transition duration-200">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
-                    <img
+                    <Image
                       src={suggestion.avatar}
                       alt={suggestion.name}
                       className="w-12 h-12 rounded-full object-cover"

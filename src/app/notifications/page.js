@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import Typography from '@/components/ui/Typography';
 import ToggleSwitch from '@/components/ui/ToggleSwitch';
+import Image from 'next/image';
 
 const Notifications = () => {
   const [filter, setFilter] = useState('all');
@@ -145,7 +146,7 @@ const Notifications = () => {
   const getNotificationIcon = (notification) => {
     if (notification.avatar) {
       return (
-        <img
+        <Image
           src={notification.avatar}
           alt=""
           className="w-10 h-10 rounded-full object-cover"

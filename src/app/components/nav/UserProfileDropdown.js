@@ -12,6 +12,7 @@ import {
   HelpCircle
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 export default function UserProfileDropdown({ user, signOut, onOpenSettings, onOpenProfile, userStats }) {
   const router = useRouter();
@@ -90,7 +91,7 @@ export default function UserProfileDropdown({ user, signOut, onOpenSettings, onO
         aria-label="User menu"
       >
         <div className="relative">
-          <img
+          <Image
             src={user?.avatar || '/default-avatar.png'}
             alt="Profile"
             className="w-10 h-10 rounded-full object-cover border-2 border-gray-20 group-hover:border-purple-60 transition-colors"
@@ -130,7 +131,7 @@ export default function UserProfileDropdown({ user, signOut, onOpenSettings, onO
             {/* User Info Header */}
             <div className="p-3 bg-gradient-to-r from-purple-60 to-purple-70 text-white">
               <div className="flex items-center space-x-3">
-                <img
+                <Image
                   src={user?.avatar || '/default-avatar.png'}
                   alt="Profile"
                   className="w-12 h-12 rounded-full object-cover border-2 border-white/20"
@@ -241,7 +242,7 @@ export function UserProfileDropdownMinimal({ user, signOut, onOpenSettings }) {
         onClick={() => setIsOpen(!isOpen)}
         className="relative group"
       >
-        <img
+        <Image
           src={user?.avatar || '/default-avatar.png'}
           alt="Profile"
           className="w-10 h-10 rounded-full object-cover border-2 border-gray-20 group-hover:border-purple-60 transition-colors"

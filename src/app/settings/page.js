@@ -14,6 +14,7 @@ import useAuth from '@/hooks/useAuth';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 export default function AccountSettings() {
   const { user, setUser } = useAuth();
@@ -297,7 +298,7 @@ export default function AccountSettings() {
             {/* Avatar Section */}
             <div className="flex items-center space-x-6">
               <div className="relative">
-                <img
+                <Image
                   src={profile.avatar || '/default-avatar.png'}
                   alt="Avatar"
                   className="w-24 h-24 rounded-full object-cover border-2 border-gray-20"
