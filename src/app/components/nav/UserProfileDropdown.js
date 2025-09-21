@@ -92,9 +92,10 @@ export default function UserProfileDropdown({ user, signOut, onOpenSettings, onO
       >
         <div className="relative">
           <Image
+            width={10} height={10}
             src={user?.avatar || '/default-avatar.png'}
             alt="Profile"
-            className="w-10 h-10 rounded-full object-cover border-2 border-gray-20 group-hover:border-purple-60 transition-colors"
+            className="rounded-full object-cover border-2 border-gray-20 group-hover:border-purple-60 transition-colors"
             onError={(e) => {
               e.target.src = '/default-avatar.png';
             }}
@@ -132,9 +133,10 @@ export default function UserProfileDropdown({ user, signOut, onOpenSettings, onO
             <div className="p-3 bg-gradient-to-r from-purple-60 to-purple-70 text-white">
               <div className="flex items-center space-x-3">
                 <Image
+                  width={12} height={12}
                   src={user?.avatar || '/default-avatar.png'}
                   alt="Profile"
-                  className="w-12 h-12 rounded-full object-cover border-2 border-white/20"
+                  className="rounded-full object-cover border-2 border-white/20"
                 />
                 <div className="flex-1">
                   <div className="font-semibold">
@@ -243,9 +245,10 @@ export function UserProfileDropdownMinimal({ user, signOut, onOpenSettings }) {
         className="relative group"
       >
         <Image
+          width={10} height={10}
           src={user?.avatar || '/default-avatar.png'}
           alt="Profile"
-          className="w-10 h-10 rounded-full object-cover border-2 border-gray-20 group-hover:border-purple-60 transition-colors"
+          className="rounded-full object-cover border-2 border-gray-20 group-hover:border-purple-60 transition-colors"
           onError={(e) => {
             e.target.src = '/default-avatar.png';
           }}
