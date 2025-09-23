@@ -14,6 +14,7 @@ import Button from '@/components/ui/Button';
 import Celebration from '@/components/ui/Celebration';
 import { saveDebuggerResult } from '@/api/firebase/userProgress';
 import useAuth from '@/hooks/useAuth';
+import json5 from 'json5';
 
 export default function CodeEditor ({ data, match='solo' }){
   const { user } = useAuth();
@@ -40,17 +41,23 @@ export default function CodeEditor ({ data, match='solo' }){
     router.push("/explore")
   }
 
+  function safeParse(ipt) {
+    try {
+      return JSON.parse(ipt); // try strict JSON first
+    } catch {
+      try {
+        return json5.parse(ipt); // allow single quotes, comments, etc.
+      } catch {
+        return ipt; // fallback: keep as string
+      }
+    }
+  }
+
   const handleRun = async () => {
     setIsRunning(true);
     setOutput({success: true, message: 'Running code...'});
     setShowTests(false);
-    let tempInputs = inputs.map(ipt => {
-      try {
-        return JSON.parse(ipt);
-      } catch {
-        return eval("(" + ipt + ")");
-      }
-    });
+    let tempInputs = inputs.map(ipt => safeParse(ipt));
 
     try {
       const res = await fetch("/api/run-code", {

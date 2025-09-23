@@ -15,18 +15,18 @@ export default function CodeEditor ({ data }){
   const [code, setCode] = useState(data?.starterCode || `function solution(arr) {
     // Write your code here
   }`);
-const [testResults, setTestResults] = useState([]);
-const [isRunning, setIsRunning] = useState(false);
-const [showTests, setShowTests] = useState(false);
-const [isSubmitting, setIsSubmitting] = useState(false);
-const [output, setOutput] = useState({success: true, message: ''});
-const [inputs, setInputs] = useState(data?.testCases?.[0]?.input || []);
+  const [testResults, setTestResults] = useState([]);
+  const [isRunning, setIsRunning] = useState(false);
+  const [showTests, setShowTests] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [output, setOutput] = useState({success: true, message: ''});
+  const [inputs, setInputs] = useState(data?.testCases?.[0]?.input || []);
 
   const handleRun = async () => {
     setIsRunning(true);
     setOutput({success: true, message: 'Running code...'});
     setShowTests(false);
-    let tempInputs = inputs.map(ipt=>JSON.parse(ipt))
+    let tempInputs = inputs.map(ipt => safeParse(ipt));
     try {
       const res = await fetch("/api/run-code", {
         method: "POST",

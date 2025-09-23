@@ -92,7 +92,7 @@ export default function UserProfileDropdown({ user, signOut, onOpenSettings, onO
       >
         <div className="relative">
           <Image
-            width={10} height={10}
+            width={40} height={40}
             src={user?.avatar || '/default-avatar.png'}
             alt="Profile"
             className="rounded-full object-cover border-2 border-gray-20 group-hover:border-purple-60 transition-colors"
@@ -133,7 +133,7 @@ export default function UserProfileDropdown({ user, signOut, onOpenSettings, onO
             <div className="p-3 bg-gradient-to-r from-purple-60 to-purple-70 text-white">
               <div className="flex items-center space-x-3">
                 <Image
-                  width={12} height={12}
+                  width={40} height={40}
                   src={user?.avatar || '/default-avatar.png'}
                   alt="Profile"
                   className="rounded-full object-cover border-2 border-white/20"
@@ -245,7 +245,7 @@ export function UserProfileDropdownMinimal({ user, signOut, onOpenSettings }) {
         className="relative group"
       >
         <Image
-          width={10} height={10}
+          width={40} height={40}
           src={user?.avatar || '/default-avatar.png'}
           alt="Profile"
           className="rounded-full object-cover border-2 border-gray-20 group-hover:border-purple-60 transition-colors"
