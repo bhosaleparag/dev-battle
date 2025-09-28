@@ -4,7 +4,7 @@ import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Input from "../ui/Input";
 import Typography from "../ui/Typography";
-import { handleRegister } from "@/lib/firebaseAuth";
+import { handleRegister } from "@/api/actions/firebaseAuth";
 import useAuth from "@/hooks/useAuth";
 import Form from "next/form";
 import { Eye, EyeOff } from "lucide-react";

@@ -20,20 +20,19 @@ export const SocketProvider = ({ children }) => {
   // Initialize socket connection
   const socketData = useSocket(user?.uid, user?.username);
   const { socket, isConnected } = socketData;
-  console.log(socket, isConnected)
+
   // Initialize feature hooks
-  const presence = usePresence(socket, isConnected);
-  const chat = useChat(socket, isConnected);
-  const rooms = useRooms(socket, isConnected);
-  const leaderboard = useLeaderboard(socket, isConnected);
+  const presenceState = usePresence(socket, isConnected);
+  const chatState = useChat(socket, isConnected);
+  const roomsState = useRooms(socket, isConnected);
+  const leaderboardState = useLeaderboard(socket, isConnected);
 
   const value = {
     ...socketData,
-    presence,
-    chat,
-    rooms,
-    leaderboard,
-    user
+    presenceState,
+    chatState,
+    roomsState,
+    leaderboardState,
   };
 
   return (

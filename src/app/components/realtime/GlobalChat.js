@@ -1,10 +1,12 @@
 "use client";
 import React, { useEffect, useState, useRef } from 'react';
 import { useSocketContext } from '@/context/SocketProvider';
+import useAuth from '@/hooks/useAuth';
 
 const GlobalChat = () => {
-  const { chat, isConnected, user } = useSocketContext();
-  const { globalMessages, sendGlobalMessage, getGlobalChatHistory, startTyping, stopTyping, typingUsers } = chat;
+  const { user } = useAuth();
+  const { chatState, isConnected } = useSocketContext();
+  const { globalMessages, sendGlobalMessage, getGlobalChatHistory, startTyping, stopTyping, typingUsers } = chatState;
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);

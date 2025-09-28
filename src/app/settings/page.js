@@ -1,5 +1,5 @@
 // components/AccountSettings.js
-"use client"
+"use client";
 import { useState, useRef, useEffect } from 'react';
 import { 
   updateProfile, 
@@ -299,9 +299,10 @@ export default function AccountSettings() {
             <div className="flex items-center space-x-6">
               <div className="relative">
                 <Image
+                  width={90} height={90}
                   src={profile.avatar || '/default-avatar.png'}
                   alt="Avatar"
-                  className="w-24 h-24 rounded-full object-cover border-2 border-gray-20"
+                  className="rounded-full object-cover border-2 border-gray-20"
                 />
                 <button
                   onClick={() => fileInputRef.current?.click()}

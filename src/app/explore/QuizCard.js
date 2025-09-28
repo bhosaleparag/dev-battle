@@ -1,5 +1,5 @@
 import DifficultyChip from '@/explore/components/DifficultyChip';
-import { ArrowRight, Calendar, Clock, Trophy, } from 'lucide-react';
+import { ArrowRight, Calendar, Clock, Trophy, Zap, } from 'lucide-react';
 import Link from 'next/link';
 
 /**
@@ -11,20 +11,20 @@ import Link from 'next/link';
  * @param {string} props.quizId - The unique ID of the quiz, used for the link.
  */
 
-const QuizCard = ({ routering, title, description, quizId, difficulty, daily, date }) => {
+const QuizCard = ({ routering, title, description, quizId, difficulty, daily, date, xpReward = 50 }) => {
   const isToday = date === '2024-01-15'; // Mock today's date
 
   return (
     <Link 
       href={`/${routering}/${quizId}`} 
-      className="group relative bg-gradient-to-br from-gray-08 to-gray-10 border border-gray-15 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:border-purple-60/30 min-w-[320px] max-w-[320px] max-h-[220px] cursor-pointer overflow-hidden"
+      className="group relative bg-gradient-to-br from-gray-08 to-gray-10 border border-gray-15 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:border-purple-60/30 min-w-[350px] max-w-[350px] max-h-[220px] cursor-pointer overflow-hidden"
       style={{ transform: 'translateZ(0)' }} // Force hardware acceleration without creating stacking context issues
     >
       {/* Animated gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-purple-60/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
       <div className="relative p-6 flex flex-col h-full group-hover:scale-[1.02] transition-transform duration-300">
-        {/* Rest of your content stays the same */}
+        {/* Header with title and XP indicator */}
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1">
             <h3 className="text-lg font-bold text-white mb-2 group-hover:text-purple-75 transition-colors duration-300 leading-tight">
@@ -36,6 +36,12 @@ const QuizCard = ({ routering, title, description, quizId, difficulty, daily, da
                 Today's Challenge
               </div>
             )}
+          </div>
+          
+          {/* XP Reward - Top Right Corner */}
+          <div className="flex items-center gap-1 text-purple-75 bg-purple-60/10 px-2 py-1 rounded-full">
+            <Zap className="w-3 h-3" />
+            <span className="text-xs font-medium">+{xpReward} XP</span>
           </div>
         </div>
 
@@ -61,3 +67,4 @@ const QuizCard = ({ routering, title, description, quizId, difficulty, daily, da
 };
 
 export default QuizCard;
+

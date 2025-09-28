@@ -1,9 +1,16 @@
-import React from 'react'
+"use client";
+import useAuth from "@/hooks/useAuth";
+import SignUsers from "./components/dashboard/SignUsers";
+import NonSignUser from "./components/dashboard/NonSignUser";
 
-function page() {
+function Dashboard() {
+  const { isLoggedIn } = useAuth();
+  if(isLoggedIn){
+    return <SignUsers/>
+  }
   return (
-    <div>page</div>
+    <NonSignUser/>
   )
 }
 
-export default page
+export default Dashboard

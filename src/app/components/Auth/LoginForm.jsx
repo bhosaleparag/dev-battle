@@ -7,7 +7,7 @@ import Form from 'next/form'
 import Input from "../ui/Input";
 import { Eye, EyeOff } from "lucide-react";
 import Button from "../ui/Button";
-import { handleGoogleLogin, handleLogin } from "@/lib/firebaseAuth";
+import { handleGoogleLogin, handleLogin } from "@/api/actions/firebaseAuth";
 import useAuth from "@/hooks/useAuth";
 
 export default function LoginForm() {

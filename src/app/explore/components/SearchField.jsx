@@ -5,6 +5,10 @@ const SearchField = ({
   value = '', 
   onChange, 
   onSearch,
+  popularSearches = [
+    'Maximum Subarray', 'Binary Tree Inorder Traversal', 'String Compression', 
+    'Curry Function', 'react js', 'Palindrome Number'
+  ],
   placeholder = "Search challenges, topics, or keywords...",
   className = "",
   showRecentSearches = true,
@@ -15,12 +19,6 @@ const SearchField = ({
   const [showSuggestions, setShowSuggestions] = useState(false);
   const inputRef = useRef(null);
   const containerRef = useRef(null);
-
-  // Mock popular searches - you can replace with real data
-  const popularSearches = [
-    'Maximum Subarray', 'Binary Tree Inorder Traversal', 'String Compression', 
-    'Curry Function', 'react js', 'Palindrome Number'
-  ];
 
   useEffect(() => {
     const handleClickOutside = (event) => {

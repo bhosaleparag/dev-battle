@@ -1,452 +1,368 @@
 "use client";
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { 
+  Users, 
+  UserPlus, 
   Search,
-  UserPlus,
-  Check,
-  X,
-  MoreVertical,
-  MessageCircle,
-  User,
   Clock,
-  Bell,
-  ThumbsUp
+  UserCheck,
 } from 'lucide-react';
-import Typography from '@/components/ui/Typography';
-import Input from '@/components/ui/Input';
 import Modal from '@/components/ui/Dialog';
-import Image from 'next/image';
+import SearchField from '@/explore/components/SearchField';
+import FriendBar from '@/components/ui/FriendBar';
 
-const Friends = () => {
-  const [activeTab, setActiveTab] = useState('friends');
+// Tab Button Component
+const TabButton = ({ active, onClick, children, count }) => (
+  <button
+    onClick={onClick}
+    className={`relative flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-all duration-200 ${
+      active 
+        ? 'bg-purple-60 text-white shadow-lg shadow-purple-60/20' 
+        : 'text-gray-50 hover:text-white-95 hover:bg-gray-15'
+    }`}
+  >
+    {children}
+    {count > 0 && (
+      <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+        active ? 'bg-white/20 text-white' : 'bg-gray-20 text-gray-50'
+      }`}>
+        {count}
+      </span>
+    )}
+  </button>
+);
+
+// FriendsList Component (Main Wrapper)
+const FriendsList = () => {
+  const [activeTab, setActiveTab] = useState('friends'); // 'friends' or 'requests'
+  const [showAddModal, setShowAddModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [showAddFriend, setShowAddFriend] = useState(false);
+  const [searchResults, setSearchResults] = useState([]);
+  const [recentSearches, setRecentSearches] = useState(['john_doe', 'jane_smith']);
 
-  const tabs = [
-    { id: 'friends', name: 'Friends', count: 12 },
-    { id: 'requests', name: 'Friend Requests', count: 3 },
-    { id: 'suggestions', name: 'Suggestions', count: 8 }
-  ];
-
-  const friends = [
+  // Mock data - replace with your actual data
+  const [friends] = useState([
     {
       id: 1,
-      name: 'Sarah Johnson',
-      username: '@sarah_j',
-      avatar: 'https://images.unsplash.com/photo-1494790108755-2616c4b0e596?w=150&h=150&fit=crop&crop=face',
+      name: 'John Doe',
+      username: 'john_doe',
+      avatar: null,
       status: 'online',
-      lastSeen: 'Active now',
-      mutualFriends: 5,
-      level: 8,
-      joinedDate: '2023-03-15'
+      rank: 'expert',
+      level: 42,
+      isOnline: true
     },
     {
       id: 2,
-      name: 'Mike Chen',
-      username: '@mike_chen',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
-      status: 'offline',
-      lastSeen: '2 hours ago',
-      mutualFriends: 8,
-      level: 12,
-      joinedDate: '2023-01-20'
+      name: 'Jane Smith',
+      username: 'jane_smith',
+      avatar: null,
+      status: 'away',
+      rank: 'pro',
+      level: 58,
+      isOnline: true
     },
     {
       id: 3,
-      name: 'Emily Rodriguez',
-      username: '@emily_r',
-      avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
-      status: 'away',
-      lastSeen: '30 minutes ago',
-      mutualFriends: 3,
-      level: 6,
-      joinedDate: '2023-05-10'
-    },
-    {
-      id: 4,
-      name: 'David Kim',
-      username: '@david_kim',
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-      status: 'online',
-      lastSeen: 'Active now',
-      mutualFriends: 12,
-      level: 15,
-      joinedDate: '2022-11-05'
-    },
-    {
-      id: 5,
-      name: 'Jessica Brown',
-      username: '@jess_brown',
-      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face',
+      name: 'Bob Wilson',
+      username: 'bob_w',
+      avatar: null,
       status: 'offline',
-      lastSeen: '1 day ago',
-      mutualFriends: 7,
-      level: 9,
-      joinedDate: '2023-02-14'
-    },
-    {
-      id: 6,
-      name: 'Alex Thompson',
-      username: '@alex_t',
-      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face',
-      status: 'away',
-      lastSeen: '45 minutes ago',
-      mutualFriends: 11,
-      level: 13,
-      joinedDate: '2022-12-08'
-    }
-  ];
-
-  const friendRequests = [
-    {
-      id: 7,
-      name: 'Lisa Park',
-      username: '@lisa_park',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face',
-      mutualFriends: 2,
-      requestDate: '2024-09-13'
+      rank: 'beginner',
+      level: 12,
+      isOnline: false
     },
     {
       id: 8,
-      name: 'James Wilson',
-      username: '@james_w',
-      avatar: 'https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?w=150&h=150&fit=crop&crop=face',
-      mutualFriends: 7,
-      requestDate: '2024-09-12'
-    },
-    {
-      id: 9,
-      name: 'Robert Martinez',
-      username: '@rob_m',
-      avatar: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&h=150&fit=crop&crop=face',
-      mutualFriends: 1,
-      requestDate: '2024-09-11'
+      name: 'Emma Davis',
+      username: 'emma_d',
+      avatar: null,
+      status: 'busy',
+      rank: 'expert',
+      level: 35,
+      isOnline: true
     }
-  ];
+  ]);
 
-  const suggestions = [
+  const [friendRequests] = useState([
     {
-      id: 10,
-      name: 'Maria Garcia',
-      username: '@maria_g',
-      avatar: 'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=150&h=150&fit=crop&crop=face',
-      mutualFriends: 9,
-      reason: 'Works at the same company'
+      id: 4,
+      name: 'Alice Johnson',
+      username: 'alice_j',
+      avatar: null,
+      status: 'online',
+      rank: 'pro',
+      level: 28,
+      isOnline: true
     },
     {
-      id: 11,
-      name: 'Chris Anderson',
-      username: '@chris_a',
-      avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&h=150&fit=crop&crop=face',
-      mutualFriends: 4,
-      reason: 'Mutual friends with Sarah Johnson'
-    },
-    {
-      id: 12,
-      name: 'Amy Taylor',
-      username: '@amy_t',
-      avatar: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=150&h=150&fit=crop&crop=face',
-      mutualFriends: 6,
-      reason: 'Similar interests'
-    },
-    {
-      id: 13,
-      name: 'Daniel Lee',
-      username: '@daniel_l',
-      avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&h=150&fit=crop&crop=face',
-      mutualFriends: 3,
-      reason: 'Lives in your city'
-    },
-    {
-      id: 14,
-      name: 'Sophie Williams',
-      username: '@sophie_w',
-      avatar: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=150&h=150&fit=crop&crop=face',
-      mutualFriends: 8,
-      reason: 'Common interests'
+      id: 5,
+      name: 'Mike Brown',
+      username: 'mike_b',
+      avatar: null,
+      status: 'offline',
+      rank: 'beginner',
+      level: 8,
+      isOnline: false
     }
-  ];
+  ]);
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'online': return 'bg-green-400';
-      case 'away': return 'bg-yellow-400';
-      case 'offline': return 'bg-gray-400';
-      default: return 'bg-gray-400';
+  const handleSearch = () => {
+    if (!searchQuery.trim()) return;
+    
+    // Add to recent searches
+    if (!recentSearches.includes(searchQuery)) {
+      setRecentSearches(prev => [searchQuery, ...prev.slice(0, 4)]);
     }
+    
+    // Mock search results - replace with actual search logic
+    setSearchResults([
+      {
+        id: 6,
+        name: 'Sarah Connor',
+        username: 'sarah_c',
+        avatar: null,
+        status: 'online',
+        rank: 'expert',
+        level: 67,
+        isOnline: true
+      },
+      {
+        id: 7,
+        name: 'Tom Anderson',
+        username: 'neo',
+        avatar: null,
+        status: 'busy',
+        rank: 'pro',
+        level: 89,
+        isOnline: true
+      }
+    ]);
   };
 
-  const filteredFriends = friends.filter(friend =>
-    friend.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    friend.username.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const handleAcceptRequest = (requestId) => {
-    // Handle accept friend request logic
-    console.log('Accepting request:', requestId);
+  const handleFriendAction = (action, friendId) => {
+    console.log(`${action} friend:`, friendId);
+    // Implement actual friend actions here
   };
 
-  const handleDeclineRequest = (requestId) => {
-    // Handle decline friend request logic
-    console.log('Declining request:', requestId);
+  const handleRequestAction = (action, requestId) => {
+    console.log(`${action} request:`, requestId);
+    // Implement actual request actions here
   };
 
-  const handleAddFriend = (suggestionId) => {
-    // Handle add friend logic
-    console.log('Adding friend:', suggestionId);
-  };
-
-  const handleRemoveSuggestion = (suggestionId) => {
-    // Handle remove suggestion logic
-    console.log('Removing suggestion:', suggestionId);
-  };
-
-  const handleSendFriendRequest = () => {
-    // Handle send friend request logic
-    setShowAddFriend(false);
-  };
+  const onlineFriends = friends.filter(f => f.status === 'online' || f.status === 'away' || f.status === 'busy');
+  const offlineFriends = friends.filter(f => f.status === 'offline');
 
   return (
-    <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
-          <div>
-            <Typography variant='h1' className="mb-2">Friends</Typography>
-            <p className="text-gray-60">Connect with your friends and discover new people</p>
+    <div className="rounded-2xl">
+      {/* Modern Header with Gradient */}
+      <div className="relative bg-gradient-to-r from-purple-60/20 to-purple-70/20 border-b border-gray-20 p-6">
+        <div className="absolute inset-0 bg-gray-10/80 backdrop-blur-sm" />
+        <div className="relative flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-purple-60/20 rounded-xl">
+              <Users size={24} className="text-purple-60" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-white-99">Friends</h2>
+              <p className="text-sm text-gray-50">Connect and compete with friends</p>
+            </div>
           </div>
           <button
-            onClick={() => setShowAddFriend(true)}
-            className="mt-4 sm:mt-0 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium flex items-center transition duration-200"
+            onClick={() => setShowAddModal(true)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-purple-60 hover:bg-purple-65 text-white rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl font-medium"
           >
-            <UserPlus className="h-5 w-5 mr-2" />
+            <UserPlus size={16} />
             Add Friend
           </button>
         </div>
+      </div>
 
-        {/* Search Bar */}
-        <div className="relative mb-6">
-          <Search className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search friends..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
+      {/* Modern Tab Navigation */}
+      <div className="px-6 pt-6 pb-2">
+        <div className="flex gap-2">
+          <TabButton
+            active={activeTab === 'friends'}
+            onClick={() => setActiveTab('friends')}
+            count={friends.length}
+          >
+            <UserCheck size={16} />
+            Friends
+          </TabButton>
+          <TabButton
+            active={activeTab === 'requests'}
+            onClick={() => setActiveTab('requests')}
+            count={friendRequests.length}
+          >
+            <Clock size={16} />
+            Requests
+          </TabButton>
         </div>
+      </div>
 
-        {/* Tabs */}
-        <div className="flex border border-gray-15 space-x-1 p-1 rounded-lg mb-8">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 py-2 px-4 rounded-md font-medium transition duration-200 ${
-                activeTab === tab.id
-                  ? 'bg-blue-600 text-white shadow-sm'
-                  : 'text-gray-50 hover:text-white-90'
-              }`}
-            >
-              {tab.name} ({tab.count})
-            </button>
-          ))}
-        </div>
-
-        {/* Friends List */}
+      {/* Tab Content */}
+      <div className="px-6 pb-6">
         {activeTab === 'friends' && (
-          <div className="space-y-4">
-            {filteredFriends.map((friend) => (
-              <div key={friend.id} className="rounded-lg shadow-sm p-6 border border-gray-15 hover:shadow-md transition duration-200">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
-                    <div className="relative">
-                      <Image
-                        src={friend.avatar}
-                        alt={friend.name}
-                        className="w-12 h-12 rounded-full object-cover"
-                      />
-                      <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${getStatusColor(friend.status)}`}></div>
-                    </div>
-                    <div>
-                      <Typography className="text-lg font-semibold">{friend.name}</Typography>
-                      <p className="text-gray-600">{friend.username}</p>
-                      <div className="flex items-center space-x-4 mt-1">
-                        <span className="text-sm text-gray-500 flex items-center">
-                          <Clock className="h-4 w-4 mr-1" />
-                          {friend.lastSeen}
-                        </span>
-                        <span className="text-sm text-gray-500">
-                          Level {friend.level}
-                        </span>
-                        <span className="text-sm text-gray-500">
-                          {friend.mutualFriends} mutual friends
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <button className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition duration-200">
-                      <MessageCircle className="h-5 w-5" />
-                    </button>
-                    <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg transition duration-200">
-                      <MoreVertical className="h-5 w-5" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-
-            {filteredFriends.length === 0 && (
+          <div className="space-y-6">
+            {friends.length === 0 ? (
               <div className="text-center py-12">
-                <User className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No friends found</h3>
-                <p className="text-gray-600">
-                  {searchQuery ? 'Try adjusting your search terms.' : 'Start by adding some friends!'}
-                </p>
+                <div className="p-4 bg-gray-15 rounded-2xl w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+                  <Users size={32} className="text-gray-40" />
+                </div>
+                <h3 className="text-lg font-semibold text-white-99 mb-2">No friends yet</h3>
+                <p className="text-gray-50 mb-6 max-w-sm mx-auto">Start your coding journey by connecting with other developers</p>
+                <button
+                  onClick={() => setShowAddModal(true)}
+                  className="px-6 py-3 bg-purple-60 hover:bg-purple-65 text-white rounded-xl transition-all duration-200 font-medium"
+                >
+                  Find Your First Friend
+                </button>
               </div>
+            ) : (
+              <>
+                {/* Online Friends */}
+                {onlineFriends.length > 0 && (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                      <h3 className="text-sm font-semibold text-white-95 uppercase tracking-wide">
+                        Online ({onlineFriends.length})
+                      </h3>
+                    </div>
+                    <div className="space-y-2">
+                      {onlineFriends.map(friend => (
+                        <FriendBar
+                          key={friend.id}
+                          friend={friend}
+                          context="friend"
+                          onClick={() => console.log('Clicked friend:', friend.name)}
+                          onViewProfile={() => handleFriendAction('view', friend.id)}
+                          onChat={() => handleFriendAction('chat', friend.id)}
+                          onRemoveFriend={() => handleFriendAction('remove', friend.id)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Offline Friends */}
+                {offlineFriends.length > 0 && (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-gray-40 rounded-full" />
+                      <h3 className="text-sm font-semibold text-white-95 uppercase tracking-wide">
+                        Offline ({offlineFriends.length})
+                      </h3>
+                    </div>
+                    <div className="space-y-2">
+                      {offlineFriends.map(friend => (
+                        <FriendBar
+                          key={friend.id}
+                          friend={friend}
+                          context="friend"
+                          onClick={() => console.log('Clicked friend:', friend.name)}
+                          onViewProfile={() => handleFriendAction('view', friend.id)}
+                          onChat={() => handleFriendAction('chat', friend.id)}
+                          onRemoveFriend={() => handleFriendAction('remove', friend.id)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </div>
         )}
 
-        {/* Friend Requests */}
         {activeTab === 'requests' && (
-          <div className="space-y-4">
-            {friendRequests.map((request) => (
-              <div key={request.id} className="rounded-lg shadow-sm p-6 border border-gray-15 hover:shadow-md transition duration-200">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
-                    <Image
-                      src={request.avatar}
-                      alt={request.name}
-                      className="w-12 h-12 rounded-full object-cover"
-                    />
-                    <div>
-                      <Typography className="text-lg font-semibold">{request.name}</Typography>
-                      <p className="text-gray-600">{request.username}</p>
-                      <div className="flex items-center space-x-4 mt-1">
-                        <span className="text-sm text-gray-500">
-                          {request.mutualFriends} mutual friends
-                        </span>
-                        <span className="text-sm text-gray-500">
-                          {new Date(request.requestDate).toLocaleDateString()}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <button 
-                      onClick={() => handleAcceptRequest(request.id)}
-                      className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium flex items-center transition duration-200"
-                    >
-                      <Check className="h-4 w-4 mr-1" />
-                      Accept
-                    </button>
-                    <button 
-                      onClick={() => handleDeclineRequest(request.id)}
-                      className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg font-medium flex items-center transition duration-200"
-                    >
-                      <X className="h-4 w-4 mr-1" />
-                      Decline
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-
-            {friendRequests.length === 0 && (
+          <div className="space-y-3">
+            {friendRequests.length === 0 ? (
               <div className="text-center py-12">
-                <Bell className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No friend requests</h3>
-                <p className="text-gray-600">You're all caught up with friend requests!</p>
+                <div className="p-4 bg-gray-15 rounded-2xl w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+                  <Clock size={32} className="text-gray-40" />
+                </div>
+                <h3 className="text-lg font-semibold text-white-99 mb-2">No friend requests</h3>
+                <p className="text-gray-50">New friend requests will appear here</p>
               </div>
+            ) : (
+              <>
+                <h3 className="text-sm font-semibold text-white-95 uppercase tracking-wide mb-4">
+                  Pending Requests ({friendRequests.length})
+                </h3>
+                <div className="space-y-2">
+                  {friendRequests.map(request => (
+                    <FriendBar
+                      key={request.id}
+                      friend={request}
+                      context="request"
+                      onClick={() => console.log('Clicked request:', request.name)}
+                      onAcceptRequest={() => handleRequestAction('accept', request.id)}
+                      onDeclineRequest={() => handleRequestAction('decline', request.id)}
+                    />
+                  ))}
+                </div>
+              </>
             )}
           </div>
         )}
+      </div>
 
-        {/* Suggestions */}
-        {activeTab === 'suggestions' && (
-          <div className="space-y-4">
-            {suggestions.map((suggestion) => (
-              <div key={suggestion.id} className="rounded-lg shadow-sm p-6 border border-gray-15 hover:shadow-md transition duration-200">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
-                    <Image
-                      src={suggestion.avatar}
-                      alt={suggestion.name}
-                      className="w-12 h-12 rounded-full object-cover"
-                    />
-                    <div>
-                      <Typography className="text-lg font-semibold">{suggestion.name}</Typography>
-                      <p className="text-gray-600">{suggestion.username}</p>
-                      <div className="flex items-center space-x-4 mt-1">
-                        <span className="text-sm text-gray-500">
-                          {suggestion.mutualFriends} mutual friends
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <button 
-                      onClick={() => handleAddFriend(suggestion.id)}
-                      className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium flex items-center transition duration-200"
-                    >
-                      <UserPlus className="h-4 w-4 mr-1" />
-                      Add Friend
-                    </button>
-                    <button 
-                      onClick={() => handleRemoveSuggestion(suggestion.id)}
-                      className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg font-medium flex items-center transition duration-200"
-                    >
-                      <X className="h-4 w-4 mr-1" />
-                      Remove
-                    </button>
-                  </div>
-                </div>
+      {/* Add Friend Modal */}
+      <Modal
+        open={showAddModal}
+        onClose={() => {
+          setShowAddModal(false);
+          setSearchQuery('');
+          setSearchResults([]);
+        }}
+        title="Add Friend"
+      >
+        <div className="space-y-6">
+          <SearchField
+            value={searchQuery}
+            onChange={(value) => setSearchQuery(value)}
+            onSearch={handleSearch}
+            placeholder="Search by username or email..."
+            recentSearches={recentSearches}
+            showRecentSearches={searchQuery === ''}
+            onClearRecentSearches={() => setRecentSearches([])}
+          />
+
+          {/* Search Results */}
+          {searchResults.length > 0 && (
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-white-95 uppercase tracking-wide">Search Results</h3>
+              <div className="space-y-2 max-h-80 overflow-y-auto">
+                {searchResults.map(result => (
+                  <FriendBar
+                    key={result.id}
+                    friend={result}
+                    context="search"
+                    onClick={() => console.log('Clicked search result:', result.name)}
+                    onSendRequest={() => {
+                      console.log('Send request to:', result.id);
+                      // Implement send request logic
+                    }}
+                  />
+                ))}
               </div>
-            ))}
+            </div>
+          )}
 
-            {suggestions.length === 0 && (
-              <div className="text-center py-12">
-                <ThumbsUp className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No suggestions available</h3>
-                <p className="text-gray-600">We'll suggest new friends based on your activity!</p>
+          {/* No Results */}
+          {searchQuery && searchResults.length === 0 && (
+            <div className="text-center py-8">
+              <div className="p-4 bg-gray-15 rounded-2xl w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                <Search size={24} className="text-gray-40" />
               </div>
-            )}
-          </div>
-        )}
-
-      <Modal open={showAddFriend} onClose={() => setShowAddFriend(false)} title="Add Friend">
-        <div className="space-y-4">
-          <div>
-            <label className="mb-2 block text-sm font-medium">
-              Username or Email
-            </label>
-            <Input
-              type="text"
-              placeholder="Enter username or email"
-            />
-          </div>
-
-          <div className="flex space-x-3">
-            <button
-              onClick={() => setShowAddFriend(false)}
-              className="flex-1 rounded-lg bg-gray-200 px-4 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-300"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleSendFriendRequest}
-              className="flex-1 rounded-lg bg-blue-500 px-4 py-2 font-medium text-white transition-colors hover:bg-blue-600"
-            >
-              Send Request
-            </button>
-          </div>
+              <h3 className="font-semibold text-white-99 mb-2">No users found</h3>
+              <p className="text-gray-50">Try searching with a different username or email</p>
+            </div>
+          )}
         </div>
       </Modal>
-      </div>
     </div>
   );
 };
 
-export default Friends;
+export default FriendsList;

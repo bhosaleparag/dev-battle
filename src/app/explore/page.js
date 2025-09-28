@@ -11,6 +11,7 @@ export default async function Page() {
     client.fetch(`*[_type == "challenge"] | order(date desc){ _id, title, description, difficulty, date }`),
   ]);
 
+  console.log('check explore')
   return (
     <div className="flex flex-col gap-6">
       <CodingChallengesPlatform
