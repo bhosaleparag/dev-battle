@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState } from 'react';
 import useAuth from '@/hooks/useAuth';
-import { useSocket, usePresence, useChat, useRooms, useLeaderboard } from '@/hooks/useSocket';
+import { useSocket, usePresence, useChat, useRooms, useLeaderboard, useFriends } from '@/hooks/useSocket';
 
 const SocketContext = createContext();
 
@@ -26,12 +26,14 @@ export const SocketProvider = ({ children }) => {
   const chatState = useChat(socket, isConnected);
   const roomsState = useRooms(socket, isConnected);
   const leaderboardState = useLeaderboard(socket, isConnected);
+  const friendsState = useFriends(socket, isConnected);
 
   const value = {
     ...socketData,
     presenceState,
     chatState,
     roomsState,
+    friendsState,
     leaderboardState,
   };
 

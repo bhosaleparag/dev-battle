@@ -4,6 +4,8 @@ import { Check, Clock, Crown, MessageCircle, MoreVertical, Shield, User, UserMin
 import { useState } from "react";
 import Avatar from "./Avatar";
 import ChatWidget from "../realtime/ChatWidget";
+import getStatusBadge from "@/utils/getStatusBadge";
+import { useRouter } from "next/navigation";
 
 const FriendMenu = ({ 
   isOpen, 
@@ -59,9 +61,8 @@ const FriendMenu = ({
 
 const FriendBar = ({ 
   friend,
-  context = 'friend', // 'friend', 'request', 'search'
+  context = 'friend', // 'friend', 'request', 'search', 'pending'
   onClick,
-  onViewProfile,
   onRemoveFriend,
   onAcceptRequest,
   onDeclineRequest,
@@ -69,15 +70,10 @@ const FriendBar = ({
 }) => {
   const [showMenu, setShowMenu] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
+  const router = useRouter();
 
-  const getStatusBadge = (status) => {
-    const badges = {
-      online: { color: 'bg-green-500', text: 'Online', pulse: true },
-      offline: { color: 'bg-gray-40', text: 'Offline', pulse: false },
-      away: { color: 'bg-yellow-500', text: 'Away', pulse: false },
-      busy: { color: 'bg-red-500', text: 'Busy', pulse: false }
-    };
-    return badges[status] || badges.offline;
+  const onViewProfile = (uid) => {
+    router.push(`/user/${uid}`);
   };
 
   const getRankIcon = (rank) => {
@@ -89,7 +85,7 @@ const FriendBar = ({
     return icons[rank] || icons.beginner;
   };
 
-  const statusBadge = getStatusBadge(friend.status);
+  const statusBadge = getStatusBadge(friend.presence);
   const rankIcon = getRankIcon(friend.rank);
 
   const getContextButton = () => {
@@ -123,12 +119,27 @@ const FriendBar = ({
             </button>
           </div>
         );
+      case 'pending':
+        return (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDeclineRequest();
+            }}
+            className="flex items-center justify-center gap-1 px-2 sm:px-3 py-1.5 bg-gray-600/20 hover:bg-gray-600/30 border border-gray-500/30 text-gray-400 rounded-lg transition-all duration-200 text-xs sm:text-sm font-medium min-w-0"
+            title="Revoke Request"
+          >
+            <X size={12} className="sm:hidden" />
+            <X size={14} className="hidden sm:block" />
+            <span className="hidden sm:inline">Revoke</span>
+          </button>
+        );
       case 'search':
         return (
           <button
             onClick={(e) => {
               e.stopPropagation();
-              onSendRequest();
+              onSendRequest(friend);
             }}
             className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-purple-60 hover:bg-purple-65 text-white rounded-lg transition-all duration-200 text-xs sm:text-sm font-medium shrink-0"
             title="Send Friend Request"
@@ -154,7 +165,7 @@ const FriendBar = ({
               isOpen={showMenu}
               onClose={() => setShowMenu(false)}
               context={context}
-              onViewProfile={onViewProfile}
+              onViewProfile={()=>onViewProfile(friend.uid)}
               onChat={()=>setChatOpen(prev=>!prev)}
               onRemoveFriend={onRemoveFriend}
             />
@@ -171,11 +182,11 @@ const FriendBar = ({
       <div className="relative shrink-0">
         <Avatar
           src={friend.avatar}
-          alt={friend.name}
+          alt={friend.username}
           size={40} // Smaller on mobile
           className="sm:w-12 sm:h-12" // Larger on desktop
           status={friend.status}
-          fallbackText={friend.name?.charAt(0)?.toUpperCase()}
+          fallbackText={friend.username?.charAt(0)?.toUpperCase()}
         />
         {context === 'request' && (
           <div className="absolute -top-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 bg-purple-60 rounded-full flex items-center justify-center">
@@ -187,7 +198,7 @@ const FriendBar = ({
       
       <div className="flex-1 min-w-0 space-y-0.5 sm:space-y-1">
         <div className="flex items-center gap-1.5 sm:gap-2">
-          <h3 className="font-semibold text-white-99 truncate text-sm sm:text-base">{friend.name}</h3>
+          <h3 className="font-semibold text-white-99 truncate text-sm sm:text-base">{friend.username}</h3>
           <rankIcon.icon size={12} className={`${rankIcon.color} sm:w-3.5 sm:h-3.5 shrink-0`} />
         </div>
         
@@ -222,6 +233,8 @@ const FriendBar = ({
 
       <ChatWidget
         isOpen={chatOpen}
+        title={`${friend?.username} Chat`}
+        roomId={friend?.uid}
         onClose={()=>setChatOpen(false)}
       />
 

@@ -1,30 +1,29 @@
 "use client";
 import { useEffect, useState, useRef } from 'react';
-import { X, Send, MessageCircle,Edit3,Trash2,Check,Globe } from 'lucide-react';
+import { X, Send, MessageCircle, Edit3, Trash2, Check, Users } from 'lucide-react';
 import useAuth from '@/hooks/useAuth';
 import { useSocketContext } from '@/context/SocketProvider';
 
-const ChatWidget = ({ chatType='global', roomId=null, title='Global Chat', isOpen = false, onClose }) => {
+const ChatWidget = ({ chatType='friend', roomId=null, title='Match Chat', isOpen = false, onClose }) => {
   const { user } = useAuth();
   const { chatState, isConnected } = useSocketContext();
-  const { globalMessages, roomMessages, typingUsers, sendGlobalMessage, sendRoomMessage, getGlobalChatHistory, getRoomChatHistory, editMessage, deleteMessage, startTyping, stopTyping } = chatState;
+  const { friendMessages, roomMessages, typingUsers, sendFriendMessage, sendRoomMessage, getFriendChatHistory, getRoomChatHistory, editMessage, deleteMessage, startTyping, stopTyping } = chatState;
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [editingMessage, setEditingMessage] = useState(null);
   const [editText, setEditText] = useState('');
   const messagesEndRef = useRef(null);
   const typingTimeoutRef = useRef(null);
+  const isTypingRef = useRef(false);
 
   // Get appropriate messages and functions based on chat type
-  const messages = chatType === 'global' ? globalMessages : (roomMessages[roomId] || []);
-  const sendMessage = chatType === 'global' ? sendGlobalMessage : sendRoomMessage;
-  const getChatHistory = chatType === 'global' ? getGlobalChatHistory : getRoomChatHistory;
+  const messages = chatType === 'friend' ? (friendMessages || []) : (roomMessages[roomId] || []);
+  const sendMessage = chatType === 'friend' ? sendFriendMessage : sendRoomMessage;
+  const getChatHistory = chatType === 'friend' ? getFriendChatHistory : getRoomChatHistory;
 
   useEffect(() => {
     if (isConnected && isOpen) {
-      if (chatType === 'global') {
-        getChatHistory();
-      } else if (roomId) {
+      if (roomId) {
         getChatHistory(roomId);
       }
     }
@@ -39,8 +38,11 @@ const ChatWidget = ({ chatType='global', roomId=null, title='Global Chat', isOpe
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
       }
+      if (isTypingRef.current) {
+        stopTyping(roomId, chatType);
+      }
     };
-  }, []);
+  }, [roomId, chatType]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -52,11 +54,7 @@ const ChatWidget = ({ chatType='global', roomId=null, title='Global Chat', isOpe
 
     setIsLoading(true);
     try {
-      if (chatType === 'global') {
-        await sendMessage(message.trim());
-      } else {
-        await sendMessage(roomId, message.trim());
-      }
+      await sendMessage(roomId, message.trim());
       setMessage('');
       stopTyping(roomId, chatType);
     } catch (error) {
@@ -66,19 +64,29 @@ const ChatWidget = ({ chatType='global', roomId=null, title='Global Chat', isOpe
     }
   };
 
+  // Optimized typing handler with debouncing
   const handleInputChange = (e) => {
-    setMessage(e.target.value);
-    
-    // Handle typing indicator
-    startTyping(roomId, chatType);
+    const value = e.target.value;
+    setMessage(value);
+
+    if (!isTypingRef.current && value.trim()) {
+      startTyping(roomId, chatType);
+      isTypingRef.current = true;
+    }
     
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
-    
+
     typingTimeoutRef.current = setTimeout(() => {
       stopTyping(roomId, chatType);
-    }, 1000);
+      isTypingRef.current = false;
+    }, 2000);
+    
+    if (!value.trim() && isTypingRef.current) {
+      stopTyping(roomId, chatType);
+      isTypingRef.current = false;
+    }
   };
 
   const handleEditMessage = async (messageId, newText) => {
@@ -109,7 +117,7 @@ const ChatWidget = ({ chatType='global', roomId=null, title='Global Chat', isOpe
   };
 
   const currentTypingUsers = typingUsers.filter(u => 
-    u.chatType === chatType && (chatType === 'global' || u.roomId === roomId)
+    u.chatType === chatType && (chatType === 'friend' || u.roomId === roomId)
   );
 
   if (!isOpen) return null;
@@ -122,8 +130,8 @@ const ChatWidget = ({ chatType='global', roomId=null, title='Global Chat', isOpe
         <div className="relative flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-purple-60/20 rounded-xl">
-              {chatType === 'global' ? (
-                <Globe size={18} className="text-purple-60" />
+              {chatType === 'friend' ? (
+                <Users size={18} className="text-purple-60" />
               ) : (
                 <MessageCircle size={18} className="text-purple-60" />
               )}
@@ -159,7 +167,7 @@ const ChatWidget = ({ chatType='global', roomId=null, title='Global Chat', isOpe
           </div>
         ) : (
           messages.map((msg, idx) => {
-            const isOwn = msg.userId === user?.uid;
+            const isOwn = [msg?.userId, msg?.senderId].includes(user?.uid);
             const isEditing = editingMessage === msg.id;
             
             return (

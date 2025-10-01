@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import calculateLevel from '@/utils/calculateLevel';
 
 export default function UserProfileDropdown({ user, signOut, onOpenSettings, onOpenProfile, userStats }) {
   const router = useRouter();
@@ -40,7 +41,7 @@ export default function UserProfileDropdown({ user, signOut, onOpenSettings, onO
     {
       icon: User,
       label: 'View Profile',
-      action: () => onOpenProfile && onOpenProfile(),
+      action: () => router.push(`/user/${user?.uid}`),
       description: 'See your public profile'
     },
     {
@@ -52,31 +53,34 @@ export default function UserProfileDropdown({ user, signOut, onOpenSettings, onO
     {
       icon: Trophy,
       label: 'Achievements',
-      action: () => router.push('achievements'),
+      action: () => router.push('/achievements'),
       description: 'View your accomplishments'
     },
     {
       icon: Users,
       label: 'Friends',
-      action: () => router.push('friends'),
+      action: () => router.push('/friends'),
       description: 'Manage your friend list'
     },
     {
       icon: Bell,
       label: 'Notifications',
-      action: () => router.push('notifications'),
+      action: () => router.push('/notifications'),
       description: 'View recent activity'
     },
     {
       icon: HelpCircle,
       label: 'Help & Support',
-      action: () => router.push('help'),
+      action: () => router.push('/help'),
       description: 'Get help and support'
     },
     {
       icon: LogOut,
       label: 'Log Out',
-      action: signOut,
+      action: ()=>{
+        signOut();
+        router.push('/');
+      },
       description: 'Sign out of your account',
       variant: 'danger'
     }
@@ -146,30 +150,12 @@ export default function UserProfileDropdown({ user, signOut, onOpenSettings, onO
                     {user?.email}
                   </div>
                   <div className="flex items-center space-x-3 mt-1 text-xs text-purple-95">
-                    <span>Level {Math.floor((userStats?.totalScore || 0) / 100) + 1}</span>
+                    <span>Level {calculateLevel(user.xp).level}</span>
                     <span>•</span>
                     <span>{userStats?.battlesWon || 0} wins</span>
                     <span>•</span>
                     <span>{userStats?.streak || 0} streak</span>
                   </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Quick Stats */}
-            <div className="p-3 bg-gray-08 border-b border-gray-20">
-              <div className="grid grid-cols-3 gap-3">
-                <div className="text-center">
-                  <div className="text-white font-semibold">{userStats?.quizzesTaken || 0}</div>
-                  <div className="text-gray-60 text-xs">Quizzes</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-white font-semibold">{userStats?.battlesWon || 0}</div>
-                  <div className="text-gray-60 text-xs">Wins</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-white font-semibold">{userStats?.streak || 0}</div>
-                  <div className="text-gray-60 text-xs">Streak</div>
                 </div>
               </div>
             </div>

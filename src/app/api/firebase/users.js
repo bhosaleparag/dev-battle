@@ -1,4 +1,4 @@
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, collection, query, where, getDocs, orderBy } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 // Function to fetch user details
@@ -9,16 +9,70 @@ export const getUserProfile = async (userId) => {
   
   try {
     const userSnapshot = await getDoc(userRef);
-
+    
     if (userSnapshot.exists()) {
-      // The document exists, so return its data
       return userSnapshot.data();
     } else {
-      // The document does not exist
       return null;
     }
   } catch (error) {
     return null;
   }
 };
+
+export const getFirestoreUsersByIds = async (userIds) => {    
+  
+  const usersRef = collection(db, "users");
+  const q = query(usersRef, where("uid", "in", userIds));
+
+  try {
+    const querySnapshot = await getDocs(q);
+    
+    const usersList = [];
+    querySnapshot.forEach((doc) => {
+      usersList.push(doc.data());
+    });
+    
+    return usersList; // Array of user profile objects
+  } catch (error) {
+    console.error("Error fetching user profiles:", error);
+    return [];
+  }
+}
+
+export const searchUsers = async (searchTerm, friends = []) => {
+  if (!searchTerm || typeof searchTerm !== 'string') return [];
+  
+  const usersRef = collection(db, "users");
+  const uniqueUsers = new Map();
+  const endAtPrefix = searchTerm + '\uf8ff';
+  
+  const qUsername = query(
+    usersRef,
+    where("username", ">=", searchTerm),
+    where("username", "<=", endAtPrefix),
+    orderBy("username")
+  );
+  const usernameSnapshot = await getDocs(qUsername);
+  usernameSnapshot.forEach(doc => {
+    const userData = doc.data();
+    if(friends.includes(userData.uid)) return;
+    uniqueUsers.set(userData.uid, userData); 
+  });
+  
+  const qEmail =  query(
+    usersRef,
+    where("email", ">=", searchTerm),
+    where("email", "<=", endAtPrefix),
+    orderBy("email") // Firestore requires an orderBy for range queries
+  );
+  const emailSnapshot = await getDocs(qEmail);
+  emailSnapshot.forEach(doc => {
+    const userData = doc.data();
+    if(friends.includes(userData.uid)) return;
+    uniqueUsers.set(userData.uid, userData); 
+  });
+
+  return Array.from(uniqueUsers.values());
+}
 
