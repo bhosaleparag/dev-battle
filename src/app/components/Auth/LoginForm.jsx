@@ -7,8 +7,9 @@ import Form from 'next/form'
 import Input from "../ui/Input";
 import { Eye, EyeOff } from "lucide-react";
 import Button from "../ui/Button";
-import { handleGoogleLogin, handleLogin } from "@/api/actions/firebaseAuth";
 import useAuth from "@/hooks/useAuth";
+import { toast } from "sonner";
+import { handleGoogleLogin, handleLogin } from "@/api/actions/firebaseAuth";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -20,6 +21,16 @@ export default function LoginForm() {
     if(state?.success){
       setUser(state?.userDetails)
       router.push('/')
+      toast.success('Welcome back!', {
+        description: 'You\'re now logged in',
+        duration: 4000,
+      });
+    } else {
+      if(state?.message){
+        toast.error(state?.message, {
+          duration: 4000,
+        });
+      }
     }
   },[state?.userDetails])
 
@@ -46,7 +57,10 @@ export default function LoginForm() {
       />
       <Button type="submit">{isPending ? 'submitting...' : 'Login'}</Button>
       <Typography variant="h4" className="text-center">or</Typography>
-      <Button variant="text" type="button" onClick={handleGoogleLogin}>
+      <Button variant="text" type="button" onClick={()=>{
+        handleGoogleLogin()
+        router.push('/')
+      }}>
         Login with Google
       </Button>
       {!state?.success && <Typography variant="body" className="text-red-400">{state.message}</Typography>}

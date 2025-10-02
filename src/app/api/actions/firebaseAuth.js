@@ -15,10 +15,11 @@ export const handleGoogleLogin = async () => {
     if (!userDetails) {
       await createUserProfile(user);
     }
-
+    
     // Return the successful result regardless of whether a new profile was created
     return { success: true, userDetails };
   } catch (error) {
+    console.log('first user login success')
     return { success: false, error: error.message };
   }
 };

@@ -3,6 +3,9 @@ import "./globals.css";
 import NavBar from "./components/nav/NavBar";
 import { AuthProvider } from "@/context/AuthContext";
 import { SocketProvider } from "./context/SocketProvider";
+import { LoaderProvider } from "./context/LoaderContext";
+import { ToastProvider } from "./context/ToastProvider";
+import { Providers } from "./context/providers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,12 +26,17 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${urbanist.variable} flex flex-col min-h-screen scrollbar-custom`}>
-        <AuthProvider>
-          <SocketProvider>
-            <NavBar/>
-            <main className="flex-1 h-full">{children}</main>
-          </SocketProvider>
-        </AuthProvider>
+        <ToastProvider/>
+        <Providers>
+          <LoaderProvider>
+            <AuthProvider>
+              <SocketProvider>
+                <NavBar/>
+                <main className="flex-1 h-full">{children}</main>
+              </SocketProvider>
+            </AuthProvider>
+          </LoaderProvider>
+        </Providers>
       </body>
     </html>
   );

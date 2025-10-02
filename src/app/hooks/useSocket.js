@@ -136,10 +136,10 @@ export const useSocket = (userId, username) => {
 
 // Hook for user presence management
 export const usePresence = (socket, isConnected) => {
-  const [onlineUsers, setOnlineUsers] = useState([]);
   const [myPresence, setMyPresence] = useState('online');
-  const [presenceStats, setPresenceStats] = useState({});
+  const [presenceStats, setPresenceStats] = useState({ online: 0, idle: 0, away: 0, total: 0 });
 
+  // Update my presence status
   const updatePresence = useCallback((status) => {
     if (socket && isConnected) {
       socket.emit('update-presence', { status });
@@ -147,12 +147,55 @@ export const usePresence = (socket, isConnected) => {
     }
   }, [socket, isConnected]);
 
-  const getOnlineUsers = useCallback(() => {
-    if (socket && isConnected) {
-      socket.emit('get-online-users');
-    }
+  // Get specific user's presence
+  const getUserPresence = useCallback((userId) => {
+    return new Promise((resolve) => {
+      if (!socket || !isConnected) {
+        resolve('offline');
+        return;
+      }
+
+      const timeout = setTimeout(() => {
+        resolve('offline');
+      }, 3000);
+
+      socket.once('user-presence', (data) => {
+        clearTimeout(timeout);
+        if (data.userId === userId) {
+          resolve(data.presence);
+        }
+      });
+
+      socket.emit('get-user-presence', { userId });
+    });
   }, [socket, isConnected]);
 
+  // Get multiple users' presence (useful for friend lists)
+  const getUsersPresence = useCallback((userIds) => {
+    return new Promise((resolve) => {
+      if (!socket || !isConnected) {
+        const fallback = {};
+        userIds.forEach(uid => fallback[uid] = 'offline');
+        resolve(fallback);
+        return;
+      }
+
+      const timeout = setTimeout(() => {
+        const fallback = {};
+        userIds.forEach(uid => fallback[uid] = 'offline');
+        resolve(fallback);
+      }, 3000);
+
+      socket.once('users-presence', (presences) => {
+        clearTimeout(timeout);
+        resolve(presences);
+      });
+
+      socket.emit('get-users-presence', { userIds });
+    });
+  }, [socket, isConnected]);
+
+  // Set user to idle
   const setUserIdle = useCallback(() => {
     if (socket && isConnected) {
       socket.emit('user-idle');
@@ -160,6 +203,7 @@ export const usePresence = (socket, isConnected) => {
     }
   }, [socket, isConnected]);
 
+  // Set user back to active
   const setUserActive = useCallback(() => {
     if (socket && isConnected) {
       socket.emit('user-active');
@@ -167,89 +211,167 @@ export const usePresence = (socket, isConnected) => {
     }
   }, [socket, isConnected]);
 
+  // Get presence statistics
+  const getPresenceStats = useCallback(() => {
+    if (socket && isConnected) {
+      socket.emit('get-presence-stats');
+    }
+  }, [socket, isConnected]);
+
+  // Set initial presence when connected
+  useEffect(() => {
+    if (socket && isConnected) {
+      socket.emit('set-initial-presence');
+    }
+  }, [socket, isConnected]);
+
+  // Listen for presence events
   useEffect(() => {
     if (!socket || !isConnected) return;
 
-    socket.on('online-users', (data) => {
-      setOnlineUsers(data);
+    // Handle presence update success
+    socket.on('presence-update-success', (data) => {
+      setMyPresence(data.status);
     });
 
-    socket.on('presence-updated', (data) => {
-      setOnlineUsers(prev => 
-        prev.map(user => 
-          user.id === data.userId 
-            ? { ...user, status: data.status, customMessage: data.customMessage }
-            : user
-        )
-      );
+    // Handle idle confirmation
+    socket.on('idle-confirmed', () => {
+      setMyPresence('idle');
     });
 
-    socket.on('user-went-idle', (data) => {
-      setOnlineUsers(prev =>
-        prev.map(user =>
-          user.id === data.userId
-            ? { ...user, status: 'idle' }
-            : user
-        )
-      );
+    // Handle active confirmation
+    socket.on('active-confirmed', () => {
+      setMyPresence('online');
     });
 
-    socket.on('user-became-active', (data) => {
-      setOnlineUsers(prev =>
-        prev.map(user =>
-          user.id === data.userId
-            ? { ...user, status: 'online' }
-            : user
-        )
-      );
-    });
-
+    // Handle presence stats
     socket.on('presence-stats', (data) => {
       setPresenceStats(data);
     });
-    
+
+    // Handle initial presence set
+    socket.on('initial-presence-set', (data) => {
+      setMyPresence(data.presence);
+    });
+
+    // Handle errors
+    socket.on('presence-error', (error) => {
+      console.error('Presence error:', error.message);
+    });
+
     return () => {
-      socket.off('online-users');
-      socket.off('presence-updated');
-      socket.off('user-went-idle');
-      socket.off('user-became-active');
+      socket.off('presence-update-success');
+      socket.off('idle-confirmed');
+      socket.off('active-confirmed');
       socket.off('presence-stats');
+      socket.off('initial-presence-set');
+      socket.off('presence-error');
     };
   }, [socket, isConnected]);
 
+  // Auto-detect idle/active based on user activity
+  useEffect(() => {
+    if (!socket || !isConnected) return;
+
+    let idleTimer;
+    const IDLE_TIME = 5 * 60 * 1000; // 5 minutes
+
+    const resetIdleTimer = () => {
+      clearTimeout(idleTimer);
+      
+      // If user was idle, set back to active
+      if (myPresence === 'idle') {
+        setUserActive();
+      }
+
+      // Set new idle timer
+      idleTimer = setTimeout(() => {
+        if (myPresence === 'online') {
+          setUserIdle();
+        }
+      }, IDLE_TIME);
+    };
+
+    // Activity events
+    const activityEvents = [
+      'mousedown',
+      'mousemove',
+      'keypress',
+      'scroll',
+      'touchstart',
+      'click'
+    ];
+
+    activityEvents.forEach(event => {
+      document.addEventListener(event, resetIdleTimer, true);
+    });
+
+    // Start initial timer
+    resetIdleTimer();
+
+    return () => {
+      clearTimeout(idleTimer);
+      activityEvents.forEach(event => {
+        document.removeEventListener(event, resetIdleTimer, true);
+      });
+    };
+  }, [socket, isConnected, myPresence, setUserIdle, setUserActive]);
+
+  // For friend list - get all friends' presence at once
+  // useEffect(() => {
+  //   if (friends.length > 0) {
+  //     const friendIds = friends.map(f => f.uid);
+  //     getUsersPresence(friendIds).then(presences => {
+  //       // presences = { userId1: 'online', userId2: 'offline', ... }
+  //       setFriendsWithPresence(friends.map(f => ({
+  //         ...f,
+  //         presence: presences[f.uid] || 'offline'
+  //       })));
+  //     });
+  //   }
+  // }, [friends, getUsersPresence]);
+
+  // For single user
+  // const checkUserPresence = async (userId) => {
+  //   const presence = await getUserPresence(userId);
+  //   console.log(`User ${userId} is ${presence}`);
+  // };
+
+
   return {
-    onlineUsers,
     myPresence,
     presenceStats,
     updatePresence,
-    getOnlineUsers,
+    getUserPresence,
+    getUsersPresence,
     setUserIdle,
-    setUserActive
+    setUserActive,
+    getPresenceStats
   };
 };
 
 // Hook for chat functionality
 export const useChat = (socket, isConnected) => {
-  const [globalMessages, setGlobalMessages] = useState([]);
+  const [friendMessages, setFriendMessages] = useState([]);
   const [roomMessages, setRoomMessages] = useState({});
   const [typingUsers, setTypingUsers] = useState([]);
   const typingTimeoutRef = useRef({});
 
-  const sendGlobalMessage = useCallback((message, type = 'text') => {
+  const sendFriendMessage = useCallback((friendId, message) => {
     if (socket && isConnected) {
-      socket.emit('send-global-message', { message, type });
+      socket.emit('send-friend-message', { friendId, message });
     }
   }, [socket, isConnected]);
 
-  const sendRoomMessage = useCallback((roomId, message, type = 'text') => {
+  const sendRoomMessage = useCallback((roomId, message) => {
     if (socket && isConnected) {
-      socket.emit('send-room-message', { roomId, message, type });
+      socket.emit('send-room-message', { roomId, message });
     }
   }, [socket, isConnected]);
 
-  const getGlobalChatHistory = useCallback((limit = 50, before = null) => {
+  const getFriendChatHistory = useCallback((friendId, limit = 50, before = null) => {
     if (socket && isConnected) {
-      socket.emit('get-global-chat-history', { limit, before });
+      socket.emit('get-friend-chat-history', { friendId, limit, before });
     }
   }, [socket, isConnected]);
 
@@ -271,13 +393,13 @@ export const useChat = (socket, isConnected) => {
     }
   }, [socket, isConnected]);
 
-  const startTyping = useCallback((roomId = null, chatType = 'global') => {
+  const startTyping = useCallback((roomId = null, chatType = 'friend') => {
     if (socket && isConnected) {
       socket.emit('typing-start', { roomId, chatType });
     }
   }, [socket, isConnected]);
 
-  const stopTyping = useCallback((roomId = null, chatType = 'global') => {
+  const stopTyping = useCallback((roomId = null, chatType = 'friend') => {
     if (socket && isConnected) {
       socket.emit('typing-stop', { roomId, chatType });
     }
@@ -286,8 +408,8 @@ export const useChat = (socket, isConnected) => {
   useEffect(() => {
     if (!socket || !isConnected) return;
 
-    socket.on('new-global-message', (message) => {
-      setGlobalMessages(prev => [...prev, message]);
+    socket.on('new-friend-message', (message) => {
+      setFriendMessages(prev => [...prev, message]);
     });
 
     socket.on('new-room-message', (message) => {
@@ -297,8 +419,8 @@ export const useChat = (socket, isConnected) => {
       }));
     });
 
-    socket.on('global-chat-history', (data) => {
-      setGlobalMessages(data.messages);
+    socket.on('friend-chat-history', (data) => {
+      setFriendMessages(data.messages);
     });
 
     socket.on('room-chat-history', (data) => {
@@ -309,9 +431,8 @@ export const useChat = (socket, isConnected) => {
     });
 
     socket.on('message-edited', (message) => {
-      console.log(message)
-      if (message.chatType === 'global') {
-        setGlobalMessages(prev =>
+      if (message.chatType === 'friend') {
+        setFriendMessages(prev =>
           prev.map(msg => msg.id === message.id ? message : msg)
         );
       } else {
@@ -325,8 +446,8 @@ export const useChat = (socket, isConnected) => {
     });
 
     socket.on('message-deleted', (data) => {
-      if (data.chatType === 'global') {
-        setGlobalMessages(prev =>
+      if (data.chatType === 'friend') {
+        setFriendMessages(prev =>
           prev.filter(msg => msg.id !== data.messageId)
         );
       } else {
@@ -368,9 +489,9 @@ export const useChat = (socket, isConnected) => {
     });
 
     return () => {
-      socket.off('new-global-message');
+      socket.off('new-friend-message');
       socket.off('new-room-message');
-      socket.off('global-chat-history');
+      socket.off('friend-chat-history');
       socket.off('room-chat-history');
       socket.off('message-edited');
       socket.off('message-deleted');
@@ -386,12 +507,12 @@ export const useChat = (socket, isConnected) => {
   }, [socket, isConnected]);
 
   return {
-    globalMessages,
+    friendMessages,
     roomMessages,
     typingUsers,
-    sendGlobalMessage,
+    sendFriendMessage,
     sendRoomMessage,
-    getGlobalChatHistory,
+    getFriendChatHistory,
     getRoomChatHistory,
     editMessage,
     deleteMessage,
@@ -658,31 +779,31 @@ export const useFriends = (socket, isConnected) => {
     }
   }, [socket, isConnected]);
 
-  const acceptFriendRequest = useCallback((roomId, message, type = 'text') => {
+  const acceptFriendRequest = useCallback((targetId) => {
     if (socket && isConnected) {
-      socket.emit('accept-friend-request', { roomId, message, type });
+      socket.emit('accept-friend-request', { targetUserId: targetId });
     }
   }, [socket, isConnected]);
 
-  const removeFriend = useCallback((limit = 50, before = null) => {
+  const removeFriend = useCallback((targetId) => {
     if (socket && isConnected) {
-      socket.emit('remove-friend', { limit, before });
+      socket.emit('remove-friend', { targetUserId: targetId });
     }
   }, [socket, isConnected]);
 
-  const getFriends = useCallback((roomId, limit = 50, before = null) => {
+  const getFriends = useCallback(() => {
+    console.log('getFriends')
     if (socket && isConnected) {
-      socket.emit('get-friends', { roomId, limit, before });
+      socket.emit('get-friends');
     }
   }, [socket, isConnected]);
 
   useEffect(() => {
     if (!socket || !isConnected) return;
-
+    
     socket.on('friend-list', (friendList) => {
       setFriendList(friendList);
     });
-
     return () => {
       socket.off('friend-list');
     };

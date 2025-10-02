@@ -32,6 +32,8 @@ const Leaderboard = () => {
     }));
   };
 
+  console.log(leaderboard, myPosition)
+
   const getAchievementIcon = (achievement) => {
     const iconMap = {
       crown: Crown,
