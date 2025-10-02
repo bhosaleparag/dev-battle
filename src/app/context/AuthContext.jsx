@@ -1,10 +1,8 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
-import { auth } from "@/lib/firebase";
-import { onAuthStateChanged, signOut } from "firebase/auth";
+import { useSession, signOut as nextAuthSignOut } from "next-auth/react";
 import usePersistedState from "@/hooks/usePersistedState";
-import { getUserProfile } from "@/api/firebase/users";
 import Loader from "@/loading";
 
 const AuthContext = createContext();
@@ -12,41 +10,44 @@ const AuthContext = createContext();
 export function AuthProvider({ children }) {
   const [hydrated, setHydrated] = useState(false);
   const [user, setUser] = usePersistedState("user", null);
+  const { data: session, status } = useSession();
 
   useEffect(() => {
     setHydrated(true);
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        try {
-          // fetch user profile
-          const userData = await getUserProfile(firebaseUser.uid);
-          setUser(userData);
+  }, []);
 
-          const token = await firebaseUser.getIdToken();
-          await fetch("/api/auth/session", {
-            method: "POST",
-            headers: {
-              authorization: `Bearer ${token}`,
-            },
-          });
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (session?.user?.id) {
+        try {
+          const response = await fetch(`/api/user/${session.user.id}`);
+          if (response.ok) {
+            const userData = await response.json();
+            setUser(userData);
+          } else {
+            console.error("Failed to fetch user profile");
+            setUser(null);
+          }
         } catch (err) {
-          await fetch("/api/auth/session", { method: "DELETE" });
           console.error("Error fetching user profile:", err);
           setUser(null);
         }
       } else {
-        await fetch("/api/auth/session", { method: "DELETE" });
         setUser(null);
       }
-    });
+    };
 
-    return () => unsubscribe();
-  }, [setUser]);
+    if (status === "authenticated") {
+      fetchUserProfile();
+    } else if (status === "unauthenticated") {
+      setUser(null);
+    }
+  }, [session, status, setUser]);
 
-  if (!hydrated) {
-    return <Loader/>
+  if (!hydrated || status === "loading") {
+    return <Loader />;
   }
-  /// HERE fix presence 
+
   return (
     <AuthContext.Provider
       value={{
@@ -54,7 +55,8 @@ export function AuthProvider({ children }) {
         isLoggedIn: !!user,
         setUser,
         signOut: async () => {
-          await signOut(auth);
+          await nextAuthSignOut({ callbackUrl: "/" });
+          setUser(null);
         },
       }}
     >

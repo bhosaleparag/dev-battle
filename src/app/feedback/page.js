@@ -58,7 +58,7 @@ export default function FeedbackForm() {
         <textarea
           name="message"
           placeholder="Enter your feedback..."
-          className="border p-2 rounded min-h-[100px] border border-gray-15 focus:outline-none"
+          className="border p-2 rounded min-h-[100px] border-gray-15 focus:outline-none"
         />
 
         {/* Hidden userId (from Firebase) */}

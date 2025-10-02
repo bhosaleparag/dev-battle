@@ -10,7 +10,7 @@ import {
   doc, 
   deleteDoc
 } from 'firebase/firestore';
-import { db } from '../firebase/config';
+import { db } from '@/lib/firebase';
 
 export function useFriends(userId) {
   const [friends, setFriends] = useState([]);
@@ -73,6 +73,7 @@ export function useFriends(userId) {
   }, [userId]);
 
   const sendFriendRequest = async (toUserId, toUsername) => {
+    console.log(toUserId, toUsername)
     try {
       await addDoc(collection(db, 'friends'), {
         from: userId,
