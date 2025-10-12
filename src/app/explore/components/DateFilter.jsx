@@ -1,6 +1,7 @@
 "use client";
 
 import DateInput from "@/components/ui/DateInput";
+import { SoundButton } from "@/components/ui/SoundButton";
 import { CalendarDays, Filter, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -85,7 +86,7 @@ const DateFilter = ({ onFilterChange, isOpen, onToggle }) => {
   return (
     <div>
       {/* Filter Button - Always visible */}
-      <button
+      <SoundButton
         onClick={onToggle}
         className={` h-full
           flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all duration-300 relative z-10
@@ -99,7 +100,7 @@ const DateFilter = ({ onFilterChange, isOpen, onToggle }) => {
         <span className="text-sm font-medium">
           {hasActiveFilter ? quickFilters.find(f => f.key === quickFilter)?.label || 'Filtered' : 'Filter by Date'}
         </span>
-      </button>
+      </SoundButton>
 
       {/* Filter Popup - Tooltip Style */}
       {isOpen && (
@@ -111,12 +112,12 @@ const DateFilter = ({ onFilterChange, isOpen, onToggle }) => {
               <Filter className="w-5 h-5 text-purple-60" />
               Filter by Date
             </h3>
-            <button
+            <SoundButton
               onClick={onToggle}
               className="p-2 hover:bg-gray-15 rounded-lg transition-colors"
             >
               <X className="w-4 h-4 text-gray-50" />
-            </button>
+            </SoundButton>
           </div>
 
           {/* Quick Filters */}
@@ -124,7 +125,7 @@ const DateFilter = ({ onFilterChange, isOpen, onToggle }) => {
             <label className="block text-sm font-medium text-gray-50 mb-3">Quick Filters</label>
             <div className="flex flex-wrap gap-2">
               {quickFilters.map((filter) => (
-                <button
+                <SoundButton
                   key={filter.key}
                   onClick={() => handleQuickFilter(filter.key)}
                   className={`
@@ -136,7 +137,7 @@ const DateFilter = ({ onFilterChange, isOpen, onToggle }) => {
                   `}
                 >
                   {filter.label}
-                </button>
+                </SoundButton>
               ))}
             </div>
           </div>
@@ -166,12 +167,12 @@ const DateFilter = ({ onFilterChange, isOpen, onToggle }) => {
           {/* Actions */}
           <div className="flex gap-3">
             {hasActiveFilter && (
-              <button
+              <SoundButton
                 onClick={clearFilters}
                 className="px-4 py-2 bg-gray-20 text-gray-50 rounded-lg hover:bg-gray-30 transition-colors text-sm font-medium"
               >
                 Clear Filters
-              </button>
+              </SoundButton>
             )}
           </div>
         </div>

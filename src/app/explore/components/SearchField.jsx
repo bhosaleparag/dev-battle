@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Search, X, Clock, TrendingUp } from 'lucide-react';
+import { SoundButton } from '@/components/ui/SoundButton';
 
 const SearchField = ({ 
   value = '', 
@@ -44,12 +45,10 @@ const SearchField = ({
   };
 
   const handleSearch = (searchTerm = value) => {
-    if (searchTerm.trim()) {
-      onSearch?.(searchTerm.trim());
-      setShowSuggestions(false);
-      setIsFocused(false);
-      inputRef.current?.blur();
-    }
+    onSearch?.(searchTerm.trim());
+    setShowSuggestions(false);
+    setIsFocused(false);
+    inputRef.current?.blur();
   };
 
   const handleKeyPress = (e) => {
@@ -110,21 +109,21 @@ const SearchField = ({
 
         {/* Clear Button */}
         {value && (
-          <button
+          <SoundButton
             onClick={clearInput}
             className="flex items-center pr-2 text-gray-50 hover:text-white transition-colors duration-200"
           >
             <X className="w-4 h-4" />
-          </button>
+          </SoundButton>
         )}
 
-        {/* Search Button */}
-        <button
+        {/* Search SoundButton */}
+        <SoundButton
           onClick={() => handleSearch()}
           className="mr-2 px-4 py-2 bg-gradient-to-r from-purple-60 to-purple-70 text-white rounded-xl hover:from-purple-65 hover:to-purple-75 transition-all duration-300 text-sm font-medium shadow-lg"
         >
           Search
-        </button>
+        </SoundButton>
       </div>
 
       {/* Search Suggestions Dropdown */}
@@ -138,23 +137,23 @@ const SearchField = ({
                   <Clock className="w-4 h-4 text-gray-50" />
                   <span className="text-sm font-medium text-gray-50">Recent Searches</span>
                 </div>
-                <button
+                <SoundButton
                   onClick={handleClearRecent}
                   className="text-xs text-gray-60 hover:text-gray-50 transition-colors"
                 >
                   Clear all
-                </button>
+                </SoundButton>
               </div>
               <div className="space-y-1">
                 {recentSearches.slice(0, 4).map((search, index) => (
-                  <button
+                  <SoundButton
                     key={index}
                     onClick={() => handleSuggestionClick(search)}
                     className="w-full flex items-center gap-3 px-3 py-2 text-left text-sm text-white hover:bg-gray-15 rounded-lg transition-colors duration-200"
                   >
                     <Clock className="w-3 h-3 text-gray-60 flex-shrink-0" />
                     <span className="truncate">{search}</span>
-                  </button>
+                  </SoundButton>
                 ))}
               </div>
             </div>
@@ -168,14 +167,14 @@ const SearchField = ({
             </div>
             <div className="space-y-1">
               {popularSearches.slice(0, 6).map((search, index) => (
-                <button
+                <SoundButton
                   key={index}
                   onClick={() => handleSuggestionClick(search)}
                   className="w-full flex items-center gap-3 px-3 py-2 text-left text-sm text-white hover:bg-gray-15 rounded-lg transition-colors duration-200"
                 >
                   <TrendingUp className="w-3 h-3 text-purple-60 flex-shrink-0" />
                   <span className="truncate">{search}</span>
-                </button>
+                </SoundButton>
               ))}
             </div>
           </div>

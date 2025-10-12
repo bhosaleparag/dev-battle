@@ -3,6 +3,7 @@
 
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
+import { SoundButton } from "./SoundButton";
 
 const Select = ({
   label,
@@ -34,7 +35,7 @@ const Select = ({
       )}
 
       {/* Select Button */}
-      <button
+      <SoundButton
         type="button"
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled}
@@ -60,13 +61,13 @@ const Select = ({
             isOpen ? 'rotate-180' : ''
           } ${disabled ? 'text-gray-50' : 'text-gray-40'}`}
         />
-      </button>
+      </SoundButton>
 
       {/* Dropdown Options */}
       {isOpen && !disabled && (
         <div className="absolute z-50 w-full mt-1 bg-gray-10 border border-gray-15 rounded-lg shadow-lg max-h-60 overflow-y-auto">
           {options.map((option, index) => (
-            <button
+            <SoundButton
               key={option.value || index}
               type="button"
               onClick={() => handleSelect(option.value)}
@@ -82,7 +83,7 @@ const Select = ({
               `}
             >
               {option.label}
-            </button>
+            </SoundButton>
           ))}
           
           {options.length === 0 && (

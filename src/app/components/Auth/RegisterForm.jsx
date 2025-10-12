@@ -9,6 +9,7 @@ import useAuth from "@/hooks/useAuth";
 import Form from "next/form";
 import { Eye, EyeOff } from "lucide-react";
 import Button from "../ui/Button";
+import { SoundButton } from "../ui/SoundButton";
 
 export default function RegisterForm() {
   const router = useRouter();
@@ -40,9 +41,9 @@ export default function RegisterForm() {
         name="password"
         placeholder="Password"
         endIcon={
-          <button type="button" onClick={() => setShowPassword(!showPassword)}>
-              {showPassword ? <EyeOff/> : <Eye/>}
-          </button>
+          <SoundButton type="button" onClick={() => setShowPassword(!showPassword)}>
+            {showPassword ? <EyeOff/> : <Eye/>}
+          </SoundButton>
         }
       />
       <Input
@@ -50,9 +51,9 @@ export default function RegisterForm() {
         name="confirmPassword"
         placeholder="Confirm Password"
         endIcon={
-          <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+          <SoundButton type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
               {showConfirmPassword ? <EyeOff/> : <Eye/>}
-          </button>
+          </SoundButton>
         }
       />
       <Button type="submit">{isPending ? 'submitting...' : 'Register'}</Button>

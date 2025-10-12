@@ -5,7 +5,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import { SocketProvider } from "./context/SocketProvider";
 import { LoaderProvider } from "./context/LoaderContext";
 import { ToastProvider } from "./context/ToastProvider";
-import { Providers } from "./context/providers";
+import { SoundProvider } from "./context/SoundContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,16 +27,16 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body className={`${geistSans.variable} ${urbanist.variable} flex flex-col min-h-screen scrollbar-custom`}>
         <ToastProvider/>
-        <Providers>
-          <LoaderProvider>
-            <AuthProvider>
+        <LoaderProvider>
+          <AuthProvider>
+            <SoundProvider>
               <SocketProvider>
                 <NavBar/>
                 <main className="flex-1 h-full">{children}</main>
               </SocketProvider>
-            </AuthProvider>
-          </LoaderProvider>
-        </Providers>
+            </SoundProvider>
+          </AuthProvider>
+        </LoaderProvider>
       </body>
     </html>
   );

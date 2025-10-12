@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Button from '../ui/Button';
+import { SoundButton } from '../ui/SoundButton';
 
 // Mock data for demonstration
 const mockDailyQuiz = {
@@ -61,10 +62,10 @@ function NonSignUser() {
               Challenge yourself with daily coding quizzes, compete in real-time battles, 
               and climb the leaderboard. Join thousands of developers improving their skills.
             </p>
-            <button onClick={()=>router.push('/register')} className="bg-white text-purple-60 px-8 py-3 rounded-lg font-semibold hover:bg-white-95 transition-colors flex items-center gap-2">
+            <SoundButton onClick={()=>router.push('/register')} className="bg-white text-purple-60 px-8 py-3 rounded-lg font-semibold hover:bg-white-95 transition-colors flex items-center gap-2">
               Start Your Journey
               <ArrowRight className="w-5 h-5" />
-            </button>
+            </SoundButton>
           </div>
           <div className="absolute -right-8 -bottom-8 opacity-20">
             <Trophy className="w-32 h-32 text-white" />
@@ -139,9 +140,9 @@ function NonSignUser() {
                         <span className="text-green-500">{battle.prize}</span>
                       </div>
                     </div>
-                    <button onClick={()=>router.push('/register')} className="px-4 py-2 bg-gray-20 hover:bg-gray-30 text-white-99 rounded-lg text-sm transition-colors">
+                    <SoundButton onClick={()=>router.push('/register')} className="px-4 py-2 bg-gray-20 hover:bg-gray-30 text-white-99 rounded-lg text-sm transition-colors">
                       Join
-                    </button>
+                    </SoundButton>
                   </div>
                 ))}
               </div>
@@ -218,9 +219,9 @@ function NonSignUser() {
 
               <div className="mt-4 p-3 bg-gray-15 rounded-lg text-center">
                 <p className="text-sm text-gray-60 mb-2">Sign in to start earning achievements</p>
-                <button onClick={()=>router.push('/register')} className="text-purple-60 hover:text-purple-65 font-medium text-sm">
+                <SoundButton onClick={()=>router.push('/register')} className="text-purple-60 hover:text-purple-65 font-medium text-sm">
                   Create Account →
-                </button>
+                </SoundButton>
               </div>
             </div>
           </div>
@@ -236,12 +237,12 @@ function NonSignUser() {
             and climbing the leaderboard. Your coding adventure starts here.
           </p>
           <div className="flex items-center justify-center gap-4">
-            <button onClick={()=>router.push('/register')} className="px-8 py-3 bg-purple-60 hover:bg-purple-65 text-white rounded-lg font-semibold transition-colors">
+            <SoundButton onClick={()=>router.push('/register')} className="px-8 py-3 bg-purple-60 hover:bg-purple-65 text-white rounded-lg font-semibold transition-colors">
               Sign Up Free
-            </button>
-            <button className="px-8 py-3 border border-gray-20 hover:border-gray-30 text-white-99 rounded-lg font-semibold transition-colors">
+            </SoundButton>
+            <SoundButton className="px-8 py-3 border border-gray-20 hover:border-gray-30 text-white-99 rounded-lg font-semibold transition-colors">
               Learn More
-            </button>
+            </SoundButton>
           </div>
         </div>
       </div>

@@ -16,10 +16,11 @@ import { useSocketContext } from '@/context/SocketProvider';
 import { getFirestoreUsersByIds, searchUsers } from '@/api/firebase/users';
 import Button from '@/components/ui/Button';
 import { toast } from 'sonner';
+import { SoundButton } from '@/components/ui/SoundButton';
 
 // Tab Button Component
 const TabButton = ({ active, onClick, children, count }) => (
-  <button
+  <SoundButton
     onClick={onClick}
     className={`relative flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-all duration-200 ${
       active 
@@ -35,7 +36,7 @@ const TabButton = ({ active, onClick, children, count }) => (
         {count}
       </span>
     )}
-  </button>
+  </SoundButton>
 );
 
 const FriendsList = () => {
@@ -49,7 +50,7 @@ const FriendsList = () => {
   const [friendRequests, setFriendRequests] = useState([]);
   const [friends, setFriends] = useState([]);
   const [recentSearches, setRecentSearches] = useState([]);
-
+  
   const handleSearch = async () => {
     let tempSearch = searchQuery.trim();
     if (!tempSearch && tempSearch.length > 4 ) return;
@@ -213,13 +214,13 @@ const FriendsList = () => {
               <p className="text-sm text-gray-50">Connect and compete with friends</p>
             </div>
           </div>
-          <button
+          <SoundButton
             onClick={() => setShowAddModal(true)}
             className="flex items-center gap-2 px-4 py-2.5 bg-purple-60 hover:bg-purple-65 text-white rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl font-medium"
           >
             <UserPlus size={16} />
             Add Friend
-          </button>
+          </SoundButton>
         </div>
       </div>
 
@@ -259,12 +260,12 @@ const FriendsList = () => {
                 </div>
                 <h3 className="text-lg font-semibold text-white-99 mb-2">No friends yet</h3>
                 <p className="text-gray-50 mb-6 max-w-sm mx-auto">Start your coding journey by connecting with other developers</p>
-                <button
+                <SoundButton
                   onClick={() => setShowAddModal(true)}
                   className="px-6 py-3 bg-purple-60 hover:bg-purple-65 text-white rounded-xl transition-all duration-200 font-medium"
                 >
                   Find Your First Friend
-                </button>
+                </SoundButton>
               </div>
             ) : (
               <>

@@ -5,6 +5,7 @@ import { FAQS } from '@/lib/constants';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Dialog';
 import { useRouter } from 'next/navigation';
+import { SoundButton } from '@/components/ui/SoundButton';
 
 const HelpSupport = () => {
   const router = useRouter();
@@ -47,12 +48,12 @@ const HelpSupport = () => {
       <div className="bg-gray-08 border border-gray-15 rounded-lg max-w-md w-full p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-xl font-semibold text-white">Contact Support</h3>
-          <button 
+          <SoundButton 
             onClick={() => setContactModal(false)}
             className="text-gray-400 hover:text-white transition-colors"
           >
             <X size={24} />
-          </button>
+          </SoundButton>
         </div>
         
         <div className="space-y-4">
@@ -124,7 +125,7 @@ const HelpSupport = () => {
           <div className="space-y-4">
             {FAQS.map((faq) => (
               <div key={faq.id} className="border border-gray-15 rounded-lg overflow-hidden">
-                <button
+                <SoundButton
                   onClick={() => setSelectedFAQ(selectedFAQ === faq.id ? null : faq.id)}
                   className="w-full text-left p-5 bg-gray-15 hover:bg-gray-600 transition-colors flex items-center justify-between"
                 >
@@ -133,7 +134,7 @@ const HelpSupport = () => {
                     size={24} 
                     className={`text-gray-400 transition-transform ${selectedFAQ === faq.id ? 'rotate-90' : ''}`} 
                   />
-                </button>
+                </SoundButton>
                 {selectedFAQ === faq.id && (
                   <div className="p-5 bg-gray-08 border-t border-gray-600">
                     <p className="text-gray-300 leading-relaxed">{faq.answer}</p>

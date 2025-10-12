@@ -1,8 +1,9 @@
 "use client";
 
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useEffect } from 'react';
 import useAuth from '@/hooks/useAuth';
-import { useSocket, usePresence, useChat, useRooms, useLeaderboard, useFriends } from '@/hooks/useSocket';
+import { useSocket, usePresence, useChat, useRooms, useLeaderboard, useFriends, useAchievements } from '@/hooks/useSocket';
+import toJavaScriptDate from '@/utils/toJavaScriptDate';
 
 const SocketContext = createContext();
 
@@ -19,15 +20,39 @@ export const SocketProvider = ({ children }) => {
   
   // Initialize socket connection
   const socketData = useSocket(user?.uid, user?.username);
-  const { socket, isConnected } = socketData;
+  const { socket, isConnected, emitEvent } = socketData;
 
   // Initialize feature hooks
   const presenceState = usePresence(socket, isConnected);
   const chatState = useChat(socket, isConnected);
-  const roomsState = useRooms(socket, isConnected);
+  const roomsState = useRooms(socket, isConnected, user);
   const leaderboardState = useLeaderboard(socket, isConnected);
-  const friendsState = useFriends(socket, isConnected);
+  const friendsState = useFriends(socket, isConnected, user);
+  const achievementState = useAchievements(socket, isConnected, user);
 
+  useEffect(() => {
+    const today = new Date();
+    const lastLoginDate = toJavaScriptDate(user?.lastSeen || new Date(Date.now() - 86400000));
+    
+    if (lastLoginDate !== today) {
+      // Calculate streak
+      const yesterday = new Date(Date.now() - 86400000);
+      let currentStreak = user?.dailyLoginStreak || 0;
+  
+      if (lastLoginDate === yesterday) {
+        currentStreak += 1; // Consecutive day
+      } else {
+        currentStreak = 1; // Streak broken
+      }
+
+      emitEvent('update-daily-streak', { 
+        userId: user?.uid,
+        currentStreak: currentStreak,
+        today
+      });
+    }
+  }, [socket, isConnected])
+  
   const value = {
     ...socketData,
     presenceState,
@@ -35,6 +60,7 @@ export const SocketProvider = ({ children }) => {
     roomsState,
     friendsState,
     leaderboardState,
+    achievementState
   };
 
   return (

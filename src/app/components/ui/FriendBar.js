@@ -6,6 +6,7 @@ import Avatar from "./Avatar";
 import ChatWidget from "../realtime/ChatWidget";
 import getStatusBadge from "@/utils/getStatusBadge";
 import { useRouter } from "next/navigation";
+import { SoundButton } from "./SoundButton";
 
 const FriendMenu = ({ 
   isOpen, 
@@ -40,7 +41,7 @@ const FriendMenu = ({
     <div className="absolute right-0 top-full mt-2 w-44 bg-gray-08 border border-gray-20 rounded-xl shadow-xl z-20 overflow-hidden backdrop-blur-lg">
       <div className="py-1">
         {menuItems[context]?.map((item, index) => (
-          <button
+          <SoundButton
             key={index}
             onClick={() => {
               item.onClick();
@@ -52,7 +53,7 @@ const FriendMenu = ({
           >
             <item.icon size={16} />
             {item.label}
-          </button>
+          </SoundButton>
         ))}
       </div>
     </div>
@@ -93,7 +94,7 @@ const FriendBar = ({
       case 'request':
         return (
           <div className="flex flex-col sm:flex-row gap-1.5 sm:gap-2 shrink-0">
-            <button
+            <SoundButton
               onClick={(e) => {
                 e.stopPropagation();
                 onAcceptRequest();
@@ -104,8 +105,8 @@ const FriendBar = ({
               <Check size={12} className="sm:hidden" />
               <Check size={14} className="hidden sm:block" />
               <span className="hidden sm:inline">Accept</span>
-            </button>
-            <button
+            </SoundButton>
+            <SoundButton
               onClick={(e) => {
                 e.stopPropagation();
                 onDeclineRequest();
@@ -116,12 +117,12 @@ const FriendBar = ({
               <X size={12} className="sm:hidden" />
               <X size={14} className="hidden sm:block" />
               <span className="hidden sm:inline">Decline</span>
-            </button>
+            </SoundButton>
           </div>
         );
       case 'pending':
         return (
-          <button
+          <SoundButton
             onClick={(e) => {
               e.stopPropagation();
               onDeclineRequest();
@@ -132,11 +133,11 @@ const FriendBar = ({
             <X size={12} className="sm:hidden" />
             <X size={14} className="hidden sm:block" />
             <span className="hidden sm:inline">Revoke</span>
-          </button>
+          </SoundButton>
         );
       case 'search':
         return (
-          <button
+          <SoundButton
             onClick={(e) => {
               e.stopPropagation();
               onSendRequest(friend);
@@ -147,12 +148,12 @@ const FriendBar = ({
             <UserPlus size={12} className="sm:hidden" />
             <UserPlus size={14} className="hidden sm:block" />
             <span className="hidden sm:inline">Add</span>
-          </button>
+          </SoundButton>
         );
       default:
         return (
           <div className="relative shrink-0">
-            <button
+            <SoundButton
               onClick={(e) => {
                 e.stopPropagation();
                 setShowMenu(!showMenu);
@@ -160,7 +161,7 @@ const FriendBar = ({
               className="p-2 hover:bg-gray-15 rounded-lg transition-all duration-200 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 touch-manipulation"
             >
               <MoreVertical size={16} className="text-gray-50" />
-            </button>
+            </SoundButton>
             <FriendMenu
               isOpen={showMenu}
               onClose={() => setShowMenu(false)}

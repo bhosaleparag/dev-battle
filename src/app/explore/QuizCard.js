@@ -1,3 +1,4 @@
+import { useSound } from '@/context/SoundContext';
 import DifficultyChip from '@/explore/components/DifficultyChip';
 import { ArrowRight, Calendar, Clock, Trophy, Zap, } from 'lucide-react';
 import Link from 'next/link';
@@ -11,13 +12,15 @@ import Link from 'next/link';
  * @param {string} props.quizId - The unique ID of the quiz, used for the link.
  */
 
-const QuizCard = ({ routering, title, description, quizId, difficulty, daily, date, xpReward = 50 }) => {
+const QuizCard = ({ routering, title, description, quizId, difficulty, daily, date, xp = 50 }) => {
+  const { play } = useSound();
   const isToday = date === '2024-01-15'; // Mock today's date
 
   return (
     <Link 
       href={`/${routering}/${quizId}`} 
-      className="group relative bg-gradient-to-br from-gray-08 to-gray-10 border border-gray-15 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:border-purple-60/30 min-w-[350px] max-w-[350px] max-h-[220px] cursor-pointer overflow-hidden"
+      onClick={() => play('swipe')}
+      className="group relative bg-gradient-to-br from-gray-08 to-gray-10 border border-gray-15 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:border-purple-60/30 max-h-[220px] cursor-pointer overflow-hidden"
       style={{ transform: 'translateZ(0)' }} // Force hardware acceleration without creating stacking context issues
     >
       {/* Animated gradient overlay */}
@@ -41,7 +44,7 @@ const QuizCard = ({ routering, title, description, quizId, difficulty, daily, da
           {/* XP Reward - Top Right Corner */}
           <div className="flex items-center gap-1 text-purple-75 bg-purple-60/10 px-2 py-1 rounded-full">
             <Zap className="w-3 h-3" />
-            <span className="text-xs font-medium">+{xpReward} XP</span>
+            <span className="text-xs font-medium">+{xp} XP</span>
           </div>
         </div>
 

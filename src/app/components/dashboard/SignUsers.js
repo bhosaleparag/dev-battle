@@ -19,6 +19,7 @@ import {
   User,
   MessageSquare
 } from 'lucide-react';
+import { SoundButton } from '../ui/SoundButton';
 
 // Mock user data
 const currentUser = {
@@ -214,10 +215,10 @@ export default function SignedInDashboard() {
                     </div>
                   </div>
                 ) : (
-                  <button className="w-full bg-purple-60 hover:bg-purple-65 text-white py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
+                  <SoundButton className="w-full bg-purple-60 hover:bg-purple-65 text-white py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
                     <Play className="w-5 h-5" />
                     Start Quiz
-                  </button>
+                  </SoundButton>
                 )}
               </div>
             </div>
@@ -234,10 +235,10 @@ export default function SignedInDashboard() {
                     <p className="text-gray-60">Join ongoing challenges</p>
                   </div>
                 </div>
-                <button className="bg-purple-60 hover:bg-purple-65 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+                <SoundButton className="bg-purple-60 hover:bg-purple-65 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
                   <Plus className="w-4 h-4" />
                   Create Battle
-                </button>
+                </SoundButton>
               </div>
 
               <div className="space-y-4">
@@ -264,9 +265,9 @@ export default function SignedInDashboard() {
                         </div>
                       </div>
                     </div>
-                    <button className="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg font-medium transition-colors">
+                    <SoundButton className="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg font-medium transition-colors">
                       Join Battle
-                    </button>
+                    </SoundButton>
                   </div>
                 ))}
               </div>
@@ -282,10 +283,10 @@ export default function SignedInDashboard() {
                 <p className="text-gray-60 mb-4">
                   Challenge friends or create a public battle room. Set your own rules and difficulty.
                 </p>
-                <button className="bg-purple-60 hover:bg-purple-65 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center gap-2 mx-auto">
+                <SoundButton className="bg-purple-60 hover:bg-purple-65 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center gap-2 mx-auto">
                   <Swords className="w-5 h-5" />
                   Create Battle Room
-                </button>
+                </SoundButton>
               </div>
             </div>
 
@@ -306,9 +307,9 @@ export default function SignedInDashboard() {
                     <p className="text-gray-60">{friends.filter(f => f.isOnline).length} online</p>
                   </div>
                 </div>
-                <button className="bg-gray-20 hover:bg-gray-30 text-white-99 p-2 rounded-lg transition-colors">
+                <SoundButton className="bg-gray-20 hover:bg-gray-30 text-white-99 p-2 rounded-lg transition-colors">
                   <UserPlus className="w-5 h-5" />
-                </button>
+                </SoundButton>
               </div>
 
               <div className="space-y-3 mb-4">
@@ -335,18 +336,18 @@ export default function SignedInDashboard() {
                       </div>
                     </div>
                     {friend.isOnline && friend.status === 'Available' && (
-                      <button className="bg-purple-60 hover:bg-purple-65 text-white px-3 py-1 rounded text-sm transition-colors">
+                      <SoundButton className="bg-purple-60 hover:bg-purple-65 text-white px-3 py-1 rounded text-sm transition-colors">
                         Invite
-                      </button>
+                      </SoundButton>
                     )}
                   </div>
                 ))}
               </div>
 
-              <button className="w-full bg-gray-20 hover:bg-gray-30 text-white-99 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
+              <SoundButton className="w-full bg-gray-20 hover:bg-gray-30 text-white-99 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
                 <UserPlus className="w-5 h-5" />
                 Add More Friends
-              </button>
+              </SoundButton>
             </div>
 
             {/* Recent Achievements */}
@@ -386,10 +387,10 @@ export default function SignedInDashboard() {
                 })}
               </div>
 
-              <button className="w-full mt-4 bg-gray-20 hover:bg-gray-30 text-white-99 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
+              <SoundButton className="w-full mt-4 bg-gray-20 hover:bg-gray-30 text-white-99 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
                 <Medal className="w-5 h-5" />
                 View All Achievements
-              </button>
+              </SoundButton>
             </div>
 
           </div>

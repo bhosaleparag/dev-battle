@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import { useSocketContext } from '@/context/SocketProvider';
+import { SoundButton } from '../ui/SoundButton';
 
 const RoomList = () => {
   const { rooms, isConnected } = useSocketContext();
@@ -54,13 +55,13 @@ const RoomList = () => {
     <div className="bg-white rounded-lg shadow-lg p-6">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-bold">Available Rooms</h2>
-        <button
+        <SoundButton
           onClick={() => setShowCreateForm(!showCreateForm)}
           className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-300"
           disabled={!isConnected}
         >
           Create Room
-        </button>
+        </SoundButton>
       </div>
 
       {/* Create Room Form */}
@@ -115,19 +116,19 @@ const RoomList = () => {
             </div>
             
             <div className="flex space-x-2">
-              <button
+              <SoundButton
                 type="submit"
                 className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
               >
                 Create Room
-              </button>
-              <button
+              </SoundButton>
+              <SoundButton
                 type="button"
                 onClick={() => setShowCreateForm(false)}
                 className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400"
               >
                 Cancel
-              </button>
+              </SoundButton>
             </div>
           </form>
         </div>
@@ -175,7 +176,7 @@ const RoomList = () => {
               </div>
               
               <div className="ml-4">
-                <button
+                <SoundButton
                   onClick={() => handleJoinRoom(room.id)}
                   disabled={!isConnected || room.currentPlayers >= room.maxPlayers}
                   className={`px-4 py-2 rounded-lg font-medium ${
@@ -185,7 +186,7 @@ const RoomList = () => {
                   }`}
                 >
                   {room.currentPlayers >= room.maxPlayers ? 'Full' : 'Join'}
-                </button>
+                </SoundButton>
               </div>
             </div>
           </div>

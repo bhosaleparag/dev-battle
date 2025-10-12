@@ -1,6 +1,7 @@
 "use client";
 import { useSocketContext } from '@/context/SocketProvider';
 import { useEffect, useState } from 'react';
+import { SoundButton } from '../ui/SoundButton';
 
 const UserPresence = () => {
   const { presence, isConnected } = useSocketContext();
@@ -47,7 +48,7 @@ const UserPresence = () => {
           <span className="font-medium">Your Status:</span>
           <div className="flex space-x-2">
             {['online', 'idle', 'away'].map(status => (
-              <button
+              <SoundButton
                 key={status}
                 onClick={() => handleStatusChange(status)}
                 className={`px-3 py-1 rounded-full text-xs font-medium ${
@@ -57,7 +58,7 @@ const UserPresence = () => {
                 }`}
               >
                 {status.charAt(0).toUpperCase() + status.slice(1)}
-              </button>
+              </SoundButton>
             ))}
           </div>
         </div>
@@ -67,12 +68,12 @@ const UserPresence = () => {
           <span className="text-sm text-gray-600">
             {myPresence.customMessage || 'No custom message'}
           </span>
-          <button
+          <SoundButton
             onClick={() => setShowCustomMessage(!showCustomMessage)}
             className="text-blue-500 hover:text-blue-700 text-xs"
           >
             Edit
-          </button>
+          </SoundButton>
         </div>
 
         {showCustomMessage && (
@@ -86,13 +87,13 @@ const UserPresence = () => {
               maxLength={100}
             />
             <div className="flex space-x-2 mt-2">
-              <button
+              <SoundButton
                 type="submit"
                 className="px-3 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600"
               >
                 Save
-              </button>
-              <button
+              </SoundButton>
+              <SoundButton
                 type="button"
                 onClick={() => {
                   setShowCustomMessage(false);
@@ -101,7 +102,7 @@ const UserPresence = () => {
                 className="px-3 py-1 bg-gray-300 text-gray-700 rounded text-xs hover:bg-gray-400"
               >
                 Cancel
-              </button>
+              </SoundButton>
             </div>
           </form>
         )}

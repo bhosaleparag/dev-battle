@@ -79,16 +79,13 @@ export const createUserProfile = async (userAuth, additionalData) => {
     email: userAuth.email,
     avatar: userAuth.photoURL,
     bio: '',
-    isOnline: true,
     lastSeen: new Date(),
-    friends: [],
     stats: {
       quizzesTaken: 0,
       battlesWon: 0,
       streak: 0,
       xp: 0
     },
-    achievements: [],
     ...additionalData, // For any extra data you might want to add during signup
   };
 

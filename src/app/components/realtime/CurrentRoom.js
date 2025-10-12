@@ -2,6 +2,7 @@
 // components/CurrentRoom.js - Current Room Component
 import React, { useState, useEffect } from 'react';
 import { useSocketContext } from '@/context/SocketProvider';
+import { SoundButton } from '../ui/SoundButton';
 
 const CurrentRoom = () => {
   const { rooms, chat, isConnected, user } = useSocketContext();
@@ -61,12 +62,12 @@ const CurrentRoom = () => {
               {currentRoom.currentPlayers}/{currentRoom.maxPlayers} players • {currentRoom.status}
             </p>
           </div>
-          <button
+          <SoundButton
             onClick={handleLeaveRoom}
             className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
           >
             Leave Room
-          </button>
+          </SoundButton>
         </div>
       </div>
 
@@ -76,7 +77,7 @@ const CurrentRoom = () => {
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold">Players</h3>
             {currentRoom.status === 'waiting' && (
-              <button
+              <SoundButton
                 onClick={handleToggleReady}
                 className={`px-4 py-2 rounded-lg font-medium ${
                   myParticipant?.isReady 
@@ -85,7 +86,7 @@ const CurrentRoom = () => {
                 }`}
               >
                 {myParticipant?.isReady ? 'Ready ✓' : 'Ready?'}
-              </button>
+              </SoundButton>
             )}
           </div>
 
@@ -133,18 +134,18 @@ const CurrentRoom = () => {
             <div className="mt-6 p-4 bg-blue-50 rounded-lg">
               <h4 className="font-semibold mb-3">Game Controls</h4>
               <div className="space-y-2">
-                <button
+                <SoundButton
                   onClick={() => handleGameEvent('bug-solved', { points: 10 })}
                   className="w-full px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
                 >
                   Solve Bug (+10 points)
-                </button>
-                <button
+                </SoundButton>
+                <SoundButton
                   onClick={() => handleGameEvent('timer-update', { timeRemaining: 300 })}
                   className="w-full px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
                 >
                   Update Timer
-                </button>
+                </SoundButton>
               </div>
             </div>
           )}
@@ -195,7 +196,7 @@ const CurrentRoom = () => {
                 disabled={!isConnected}
                 maxLength={1000}
               />
-              <button
+              <SoundButton
                 type="submit"
                 disabled={!isConnected || !message.trim()}
                 className={`px-4 py-2 rounded-lg font-medium ${
@@ -205,7 +206,7 @@ const CurrentRoom = () => {
                 }`}
               >
                 Send
-              </button>
+              </SoundButton>
             </div>
           </form>
         </div>

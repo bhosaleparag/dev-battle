@@ -8,7 +8,7 @@ const SectionHeader = ({ section, index, onFilterChange, onSearchChange, filtere
   const Icon = section.icon;
   const [showDateFilter, setShowDateFilter] = useState(false);
   const [searchValue, setSearchValue] = useState('');
-  const [recentSearches, setRecentSearches] = useState(['valid parentheses', 'array rotation', 'two sum']);
+  const [recentSearches, setRecentSearches] = useState([]);
   
   return (
     <div className="relative mb-8">

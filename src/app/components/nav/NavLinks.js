@@ -6,8 +6,11 @@ import Link from 'next/link';
 import { ChevronDown, Menu, X } from 'lucide-react';
 import Tooltip from '../ui/Tooltip';
 import { MenuRoutes, SecondaryRoutes } from '@/lib/constants';
+import { SoundButton } from '../ui/SoundButton';
+import { useSound } from '@/context/SoundContext';
 
 export default function NavLinks() {
+  const { play } = useSound();
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showMore, setShowMore] = useState(false);
@@ -52,7 +55,10 @@ export default function NavLinks() {
             ? "bg-gradient-to-r from-purple-60/20 to-purple-70/20 border-purple-60/50 shadow-lg shadow-purple-60/20" 
             : "border-transparent hover:border-gray-20 hover:bg-gray-15/50"}
         `}
-        onClick={() => isMobile && setIsMobileMenuOpen(false)}
+        onClick={() => {
+          play('swipe')
+          if(isMobile) setIsMobileMenuOpen(false);
+        }}
       >
         {/* Background glow effect for active state */}
         {active && (
@@ -118,7 +124,8 @@ export default function NavLinks() {
         {/* More dropdown for remaining routes */}
         {(MenuRoutes.length > 4 || SecondaryRoutes.length > 0) && (
           <div className="relative">
-            <button
+            <SoundButton
+              soundEffect='toggle'
               onClick={() => setShowMore(!showMore)}
               className={`
                 flex items-center gap-2 p-3 rounded-sm
@@ -134,7 +141,7 @@ export default function NavLinks() {
                 size={16} 
                 className={`text-gray-50 transition-transform ${showMore ? 'rotate-180' : ''}`} 
               />
-            </button>
+            </SoundButton>
 
             {showMore && (
               <>
@@ -162,7 +169,7 @@ export default function NavLinks() {
 
       {/* Mobile Menu Button */}
       <div className="lg:hidden">
-        <button
+        <SoundButton
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           className="p-2 rounded-xl border-2 border-transparent hover:border-gray-20 hover:bg-gray-15/50 transition-all"
           aria-label="Toggle mobile menu"
@@ -172,7 +179,7 @@ export default function NavLinks() {
           ) : (
             <Menu size={24} className="text-gray-50" />
           )}
-        </button>
+        </SoundButton>
       </div>
 
       {/* Mobile Menu Overlay */}
@@ -186,12 +193,12 @@ export default function NavLinks() {
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold text-white">Navigation</h2>
-                <button
+                <SoundButton
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="p-2 rounded-lg hover:bg-gray-15 transition-colors"
                 >
                   <X size={20} className="text-gray-50" />
-                </button>
+                </SoundButton>
               </div>
 
               <div className="space-y-2">

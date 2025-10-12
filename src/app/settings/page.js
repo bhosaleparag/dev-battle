@@ -10,10 +10,12 @@ import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { useSound } from '@/context/SoundContext';
+import { SoundButton } from '@/components/ui/SoundButton';
 
 // Memoized Tab Button Component
 const TabButton = ({ tab, isActive, onClick }) => (
-  <button
+  <SoundButton
     onClick={onClick}
     className={`w-full flex items-center px-4 py-3 text-left rounded-lg transition-colors ${
       isActive
@@ -23,7 +25,7 @@ const TabButton = ({ tab, isActive, onClick }) => (
   >
     <tab.icon size={20} className="mr-3" />
     {tab.label}
-  </button>
+  </SoundButton>
 );
 
 // Memoized Checkbox Component
@@ -88,6 +90,7 @@ const PRIVACY_OPTIONS = [
 export default function AccountSettings() {
   const router = useRouter();
   const { user, setUser } = useAuth();
+  const { preferences, updatePreferences, play } = useSound();
   const [activeTab, setActiveTab] = useState('profile');
   const [isPending, startTransition] = useTransition();
   const [message, setMessage] = useState({ type: '', text: '' });
@@ -115,13 +118,10 @@ export default function AccountSettings() {
     twoFactorEnabled: false
   });
   
-  const [preferences, setPreferences] = useState({
+  const [userPreferences, setUserPreferences] = useState({
     theme: 'dark',
     language: 'en',
     timezone: 'UTC',
-    soundEffects: true,
-    backgroundMusic: true,
-    vibration: true,
     autoJoinMatches: false,
     showOnlineStatus: true
   });
@@ -190,7 +190,7 @@ export default function AccountSettings() {
         }));
         
         if (userData.preferences) {
-          setPreferences(prev => ({ ...prev, ...userData.preferences }));
+          setUserPreferences(prev => ({ ...prev, ...userData.preferences }));
         }
         
         if (userData.notifications) {
@@ -326,9 +326,32 @@ export default function AccountSettings() {
 
   // Memoized handlers
   const handlePreferencesUpdate = useCallback(() => 
-    handleSettingsUpdate(preferences, 'preferences'), 
-    [preferences, handleSettingsUpdate]
+    handleSettingsUpdate(userPreferences, 'preferences'), 
+    [userPreferences, handleSettingsUpdate]
   );
+
+  // Handle checkbox changes with sound feedback
+  const handleSoundEffectsChange = (e) => {
+    const newValue = e.target.checked;
+    updatePreferences({ soundEffects: newValue });
+    
+    // Play toggle sound if enabling
+    if (newValue) {
+      setTimeout(() => play('toggle'), 100);
+    }
+  };
+
+  const handleBackgroundMusicChange = (e) => {
+    const newValue = e.target.checked;
+    updatePreferences({ backgroundMusic: newValue });
+    play('toggle');
+  };
+
+  const handleVibrationChange = (e) => {
+    const newValue = e.target.checked;
+    updatePreferences({ vibration: newValue });
+    play('toggle');
+  };
   
   const handleNotificationsUpdate = useCallback(() => 
     handleSettingsUpdate(notifications, 'notifications'), 
@@ -355,12 +378,12 @@ export default function AccountSettings() {
             alt="Avatar"
             className="rounded-full object-cover border-2 border-gray-20"
           />
-          <button
+          <SoundButton
             onClick={() => fileInputRef.current?.click()}
             className="absolute -bottom-2 -right-2 bg-purple-60 text-white p-2 rounded-full hover:bg-purple-65 transition-colors"
           >
             <Camera size={16} />
-          </button>
+          </SoundButton>
           <input
             ref={fileInputRef}
             type="file"
@@ -475,13 +498,13 @@ export default function AccountSettings() {
         </div>
       </div>
 
-      <button
+      <SoundButton
         onClick={handleProfileUpdate}
         disabled={isPending}
         className="bg-purple-60 text-white px-6 py-2 rounded-lg hover:bg-purple-65 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       >
         {isPending ? 'Updating...' : 'Update Profile'}
-      </button>
+      </SoundButton>
     </div>
   ), [profile, isPending, handleAvatarUpload, handleProfileUpdate]);
 
@@ -533,13 +556,13 @@ export default function AccountSettings() {
         />
       </div>
 
-      <button
+      <SoundButton
         onClick={handlePasswordChange}
         disabled={isPending || !security.currentPassword || !security.newPassword}
         className="bg-purple-60 text-white px-6 py-2 rounded-lg hover:bg-purple-65 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       >
         {isPending ? 'Updating...' : 'Update Password'}
-      </button>
+      </SoundButton>
     </div>
   ), [security, isPending, handlePasswordChange]);
 
@@ -558,8 +581,8 @@ export default function AccountSettings() {
                 type="radio"
                 name="theme"
                 value={theme}
-                checked={preferences.theme === theme}
-                onChange={(e) => setPreferences(prev => ({ ...prev, theme: e.target.value }))}
+                checked={userPreferences.theme === theme}
+                onChange={(e) => setUserPreferences(prev => ({ ...prev, theme: e.target.value }))}
                 className="mr-2 text-purple-60"
               />
               <span className="text-gray-50 capitalize">{theme}</span>
@@ -572,78 +595,103 @@ export default function AccountSettings() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-gray-50 text-sm font-medium mb-2">Language</label>
-          <select
-            value={preferences.language}
-            onChange={(e) => setPreferences(prev => ({ ...prev, language: e.target.value }))}
+          <Select
+            value={userPreferences.language}
+            onChange={(value) => setUserPreferences(prev => ({ ...prev, language: value }))}
+            options={LANGUAGE_OPTIONS}
             className="w-full px-3 py-2 bg-gray-15 border border-gray-20 rounded-lg text-white focus:outline-none focus:border-purple-60"
-          >
-            {LANGUAGE_OPTIONS.map(opt => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
-            ))}
-          </select>
+          />
         </div>
         <div>
           <label className="block text-gray-50 text-sm font-medium mb-2">Timezone</label>
-          <select
-            value={preferences.timezone}
-            onChange={(e) => setPreferences(prev => ({ ...prev, timezone: e.target.value }))}
+          <Select
+            value={userPreferences.timezone}
+            onChange={(value) => setUserPreferences(prev => ({ ...prev, timezone: value }))}
+            options={TIMEZONE_OPTIONS}
             className="w-full px-3 py-2 bg-gray-15 border border-gray-20 rounded-lg text-white focus:outline-none focus:border-purple-60"
-          >
-            {TIMEZONE_OPTIONS.map(opt => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
-            ))}
-          </select>
+          />
         </div>
       </div>
 
-      {/* Sound & Audio */}
-      <div>
+      <div className="bg-gray-10 rounded-lg p-6 mb-6">
         <h4 className="text-white font-medium mb-3">Audio Settings</h4>
         <div className="space-y-2">
           <Checkbox
             checked={preferences.soundEffects}
-            onChange={(e) => setPreferences(prev => ({ ...prev, soundEffects: e.target.checked }))}
+            onChange={handleSoundEffectsChange}
             label="Sound effects"
           />
           <Checkbox
             checked={preferences.backgroundMusic}
-            onChange={(e) => setPreferences(prev => ({ ...prev, backgroundMusic: e.target.checked }))}
+            onChange={handleBackgroundMusicChange}
             label="Background music"
           />
           <Checkbox
             checked={preferences.vibration}
-            onChange={(e) => setPreferences(prev => ({ ...prev, vibration: e.target.checked }))}
+            onChange={handleVibrationChange}
             label="Vibration (mobile)"
+          />
+        </div>
+
+        {/* Optional: Master Volume Slider */}
+        <div className="mt-4">
+          <label className="text-white-90 text-sm mb-2 block">
+            Master Volume
+          </label>
+          <input
+            type="range"
+            min="0"
+            max="100"
+            value={preferences.masterVolume * 100}
+            onChange={(e) => {
+              const volume = e.target.value / 100;
+              updatePreferences({ masterVolume: volume });
+            }}
+            className="w-full"
           />
         </div>
       </div>
 
-      {/* Gameplay */}
-      <div>
+      {/* Gameplay Settings */}
+      <div className="bg-gray-10 rounded-lg p-6">
         <h4 className="text-white font-medium mb-3">Gameplay</h4>
         <div className="space-y-2">
           <Checkbox
             checked={preferences.autoJoinMatches}
-            onChange={(e) => setPreferences(prev => ({ ...prev, autoJoinMatches: e.target.checked }))}
+            onChange={(e) => {
+              updatePreferences({ autoJoinMatches: e.target.checked });
+              play('toggle');
+            }}
             label="Auto-join matches when available"
           />
           <Checkbox
             checked={preferences.showOnlineStatus}
-            onChange={(e) => setPreferences(prev => ({ ...prev, showOnlineStatus: e.target.checked }))}
+            onChange={(e) => {
+              updatePreferences({ showOnlineStatus: e.target.checked });
+              play('toggle');
+            }}
             label="Show online status to friends"
           />
         </div>
       </div>
 
-      <button
+      {/* Test Sounds SoundButton */}
+      <SoundButton
+        onClick={() => play('achievement')}
+        className="mr-2 px-4 py-2 bg-purple-60 text-white rounded-lg hover:bg-purple-70 transition"
+      >
+        Test Sound
+      </SoundButton>
+
+      <SoundButton
         onClick={handlePreferencesUpdate}
         disabled={isPending}
         className="bg-purple-60 text-white px-6 py-2 rounded-lg hover:bg-purple-65 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       >
         {isPending ? 'Updating...' : 'Save Preferences'}
-      </button>
+      </SoundButton>
     </div>
-  ), [preferences, isPending, handlePreferencesUpdate]);
+  ), [preferences, userPreferences, isPending, handlePreferencesUpdate]);
 
   // Notifications Tab Content
   const NotificationsTab = useMemo(() => (
@@ -708,13 +756,13 @@ export default function AccountSettings() {
         />
       </div>
 
-      <button
+      <SoundButton
         onClick={handleNotificationsUpdate}
         disabled={isPending}
         className="bg-purple-60 text-white px-6 py-2 rounded-lg hover:bg-purple-65 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       >
         {isPending ? 'Updating...' : 'Save Notification Settings'}
-      </button>
+      </SoundButton>
     </div>
   ), [notifications, isPending, handleNotificationsUpdate]);
 
@@ -786,28 +834,28 @@ export default function AccountSettings() {
       <div className="border-t border-gray-20 pt-6">
         <h4 className="text-white font-medium mb-3">Account Management</h4>
         <div className="space-y-3">
-          <button className="w-full text-left px-4 py-3 bg-gray-15 border border-gray-20 rounded-lg text-gray-50 hover:bg-gray-10 transition-colors">
+          <SoundButton className="w-full text-left px-4 py-3 bg-gray-15 border border-gray-20 rounded-lg text-gray-50 hover:bg-gray-10 transition-colors">
             <div className="font-medium">Download My Data</div>
             <div className="text-sm text-gray-60">Get a copy of all your data</div>
-          </button>
-          <button className="w-full text-left px-4 py-3 bg-gray-15 border border-gray-20 rounded-lg text-gray-50 hover:bg-gray-10 transition-colors">
+          </SoundButton>
+          <SoundButton className="w-full text-left px-4 py-3 bg-gray-15 border border-gray-20 rounded-lg text-gray-50 hover:bg-gray-10 transition-colors">
             <div className="font-medium">Deactivate Account</div>
             <div className="text-sm text-gray-60">Temporarily disable your account</div>
-          </button>
-          <button className="w-full text-left px-4 py-3 bg-red-900 border border-red-700 rounded-lg text-red-300 hover:bg-red-800 transition-colors">
+          </SoundButton>
+          <SoundButton className="w-full text-left px-4 py-3 bg-red-900 border border-red-700 rounded-lg text-red-300 hover:bg-red-800 transition-colors">
             <div className="font-medium">Delete Account</div>
             <div className="text-sm text-red-400">Permanently delete your account and all data</div>
-          </button>
+          </SoundButton>
         </div>
       </div>
 
-      <button
+      <SoundButton
         onClick={handlePrivacyUpdate}
         disabled={isPending}
         className="bg-purple-60 text-white px-6 py-2 rounded-lg hover:bg-purple-65 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       >
         {isPending ? 'Updating...' : 'Save Privacy Settings'}
-      </button>
+      </SoundButton>
     </div>
   ), [privacy, isPending, handlePrivacyUpdate]);
 
@@ -861,12 +909,12 @@ export default function AccountSettings() {
             }`}>
               <div className="flex items-center">
                 <div className="flex-1">{message.text}</div>
-                <button 
+                <SoundButton 
                   onClick={() => setMessage({ type: '', text: '' })}
                   className="ml-4 text-current hover:opacity-75"
                 >
-                  ×
-                </button>
+                  X
+                </SoundButton>
               </div>
             </div>
           )}

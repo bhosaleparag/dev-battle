@@ -1,3 +1,4 @@
+import { SoundButton } from './SoundButton';
 import Typography from './Typography';
 import { X } from 'lucide-react';
 
@@ -14,13 +15,13 @@ export default function Modal({ open, onClose, title, children }) {
           {title && (
             <Typography variant="h4" className="font-semibold">{title}</Typography>
           )}
-          <button
+          <SoundButton
             onClick={onClose}
             className="text-gray-400 transition-colors hover:text-gray-300"
             aria-label="Close"
           >
             <X />
-          </button>
+          </SoundButton>
         </div>
 
         {/* Body */}

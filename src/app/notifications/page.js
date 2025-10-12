@@ -17,6 +17,7 @@ import {
 import Typography from '@/components/ui/Typography';
 import ToggleSwitch from '@/components/ui/ToggleSwitch';
 import Image from 'next/image';
+import { SoundButton } from '@/components/ui/SoundButton';
 
 const Notifications = () => {
   const [filter, setFilter] = useState('all');
@@ -26,7 +27,7 @@ const Notifications = () => {
       type: 'friend_request',
       title: 'New Friend Request',
       message: 'Sarah Johnson sent you a friend request',
-      avatar: 'https://images.unsplash.com/photo-1494790108755-2616c4b0e596?w=150&h=150&fit=crop&crop=face',
+      avatar: 'https://images.unsplash.com/photo-1494790108755-2616c4b0e596?crop=face',
       timestamp: new Date(Date.now() - 5 * 60 * 1000), // 5 minutes ago
       read: false,
       actionable: true
@@ -47,7 +48,7 @@ const Notifications = () => {
       type: 'like',
       title: 'Post Liked',
       message: 'Mike Chen and 5 others liked your post',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?crop=face',
       icon: Heart,
       timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
       read: true,
@@ -59,7 +60,7 @@ const Notifications = () => {
       type: 'message',
       title: 'New Message',
       message: 'Emily Rodriguez: "Hey, how are you doing?"',
-      avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
+      avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?crop=face',
       icon: MessageSquare,
       timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000), // 4 hours ago
       read: true,
@@ -147,9 +148,11 @@ const Notifications = () => {
     if (notification.avatar) {
       return (
         <Image
+          width={10}
+          height={10}
           src={notification.avatar}
           alt=""
-          className="w-10 h-10 rounded-full object-cover"
+          className="rounded-full object-cover"
         />
       );
     }
@@ -184,26 +187,26 @@ const Notifications = () => {
             </div>
           </div>
           <div className="flex items-center space-x-3 mt-4 sm:mt-0">
-            <button
+            <SoundButton
               onClick={markAllAsRead}
               disabled={unreadCount === 0}
               className="px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg font-medium transition duration-200 disabled:text-gray-40 disabled:hover:bg-transparent"
             >
               Mark all read
-            </button>
-            <button
+            </SoundButton>
+            <SoundButton
               onClick={() => setShowSettings(true)}
               className="p-2 text-gray-40 hover:text-gray-30 hover:bg-gray-100 rounded-lg transition duration-200"
             >
               <Settings className="w-5 h-5" />
-            </button>
+            </SoundButton>
           </div>
         </div>
 
         {/* Filter Tabs */}
         <div className="flex flex-wrap gap-2 mb-8">
           {filterOptions.map((option) => (
-            <button
+            <SoundButton
               key={option.id}
               onClick={() => setFilter(option.id)}
               className={`px-4 py-2 rounded-lg font-medium transition duration-200 ${
@@ -213,7 +216,7 @@ const Notifications = () => {
               }`}
             >
               {option.name} ({option.count})
-            </button>
+            </SoundButton>
           ))}
         </div>
 
@@ -246,23 +249,23 @@ const Notifications = () => {
                 <div className="flex items-center space-x-2">
                   {notification.actionable && (
                     <div className="flex space-x-2">
-                      <button className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm font-medium transition duration-200">
+                      <SoundButton className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm font-medium transition duration-200">
                         Accept
-                      </button>
-                      <button className="bg-gray-15 hover:bg-gray-30 text-white px-3 py-1 rounded text-sm font-medium transition duration-200">
+                      </SoundButton>
+                      <SoundButton className="bg-gray-15 hover:bg-gray-30 text-white px-3 py-1 rounded text-sm font-medium transition duration-200">
                         Decline
-                      </button>
+                      </SoundButton>
                     </div>
                   )}
                   
                   <div className="relative">
-                    <button className="p-1 text-gray-40 hover:text-gray-30 rounded transition duration-200">
+                    <SoundButton className="p-1 text-gray-40 hover:text-gray-30 rounded transition duration-200">
                       <MoreVertical className="w-4 h-4" />
-                    </button>
+                    </SoundButton>
                     {/* Dropdown menu would go here */}
                   </div>
                   
-                  <button
+                  <SoundButton
                     onClick={() => !notification.read ? markAsRead(notification.id) : deleteNotification(notification.id)}
                     className="p-1 text-gray-40 hover:text-gray-30 rounded transition duration-200"
                   >
@@ -271,7 +274,7 @@ const Notifications = () => {
                     ) : (
                       <Trash className="w-4 h-4" />
                     )}
-                  </button>
+                  </SoundButton>
                 </div>
               </div>
             </div>
@@ -297,12 +300,12 @@ const Notifications = () => {
             <div className="rounded-lg max-w-md w-full p-6">
               <div className="flex items-center justify-between mb-6">
                 <Typography variant='h4' className="font-semibold">Notification Settings</Typography>
-                <button
+                <SoundButton
                   onClick={() => setShowSettings(false)}
                   className="text-gray-40 hover:text-gray-30"
                 >
                   <X className="w-6 h-6" />
-                </button>
+                </SoundButton>
               </div>
               
               <div className="space-y-4">
@@ -329,7 +332,7 @@ const Notifications = () => {
                       <span className="text-gray-60 capitalize">
                         {key.replace(/([A-Z])/g, ' $1').trim()}
                       </span>
-                      <button
+                      <SoundButton
                         onClick={() => setSettings(prev => ({ ...prev, [key]: !value }))}
                         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                           value ? 'bg-blue-500' : 'bg-gray-300'
@@ -340,19 +343,19 @@ const Notifications = () => {
                             value ? 'translate-x-6' : 'translate-x-1'
                           }`}
                         />
-                      </button>
+                      </SoundButton>
                     </div>
                   ))}
                 </div>
               </div>
               
               <div className="mt-6 pt-4 border-t border-gray-15">
-                <button
+                <SoundButton
                   onClick={() => setShowSettings(false)}
                   className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg font-medium transition duration-200"
                 >
                   Save Settings
-                </button>
+                </SoundButton>
               </div>
             </div>
           </div>

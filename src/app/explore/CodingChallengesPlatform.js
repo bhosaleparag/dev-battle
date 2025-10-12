@@ -1,8 +1,8 @@
 "use client";
 import { useState } from 'react';
 import { Code, Bug, Zap, CalendarDays } from 'lucide-react';
-import HorizontalCardGrid from './components/HorizontalCardGrid';
 import SectionHeader from './components/SectionHeader';
+import VerticalCardGrid from './components/VerticalCardGrid';
 
 const exploreSections = [
   { 
@@ -30,7 +30,7 @@ const exploreSections = [
 
 const routering = { quizzes: 'quiz', debuggers: 'debuggers', problems: 'problem',};
 
-export default function CodingChallengesApp(data) {
+export default function CodingChallengesPlatform(data) {
   const [dateFilters, setDateFilters] = useState({
     quizzes: { startDate: null, endDate: null, type: 'all' },
     debuggers: { startDate: null, endDate: null, type: 'all' },
@@ -43,10 +43,7 @@ export default function CodingChallengesApp(data) {
   });
 
   const filterDataByDate = (data, filter, searchText) => {
-    if (
-      (filter.type === 'all' || (!filter.startDate && !filter.endDate)) &&
-      !searchText
-    ) {
+    if ((filter.type === 'all' || (!filter.startDate && !filter.endDate)) && !searchText) {
       return data;
     }
 
@@ -67,7 +64,7 @@ export default function CodingChallengesApp(data) {
 
       // Search text filtering
       let matchesSearch = true;
-      if (searchText) {
+      if (searchText ) {
         const text = searchText.toLowerCase();
         const title = item.title ? item.title.toLowerCase() : '';
         const description = item.description ? item.description.toLowerCase() : '';
@@ -108,8 +105,8 @@ export default function CodingChallengesApp(data) {
       {/* Hero Section */}
       <div className="max-w-7xl mx-auto mb-12">
         <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold text-white mb-4 bg-gradient-to-r from-purple-75 to-purple-60 bg-clip-text text-transparent">
-            Daily Code Challenges
+          <h1 className="text-5xl font-bold text-white mb-4 bg-gradient-to-r from-purple-75 to-purple-60 bg-clip-text">
+            Code Challenges
           </h1>
           <p className="text-xl text-gray-50 max-w-2xl mx-auto">
             Sharpen your coding skills with our curated collection of daily challenges, debugging exercises, and algorithmic problems.
@@ -121,7 +118,7 @@ export default function CodingChallengesApp(data) {
           {exploreSections.map((section, idx) => {
             const allData = data[section.id];
             const filteredData = filterDataByDate(allData, dateFilters[section.id], searchFilters[section.id]);
-            
+
             if (!allData || allData.length === 0) return null;
             
             return (
@@ -135,7 +132,7 @@ export default function CodingChallengesApp(data) {
                   totalCount={allData.length}
                 />
                 {filteredData.length > 0 ? (
-                  <HorizontalCardGrid 
+                  <VerticalCardGrid 
                     routering={routering[section.id]} 
                     cards={filteredData} 
                   />

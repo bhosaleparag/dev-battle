@@ -13,12 +13,14 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import calculateLevel from '@/utils/calculateLevel';
+import { calculateLevel } from '@/utils/calculateLevel';
+import { SoundButton } from '../ui/SoundButton';
 
 export default function UserProfileDropdown({ user, signOut, onOpenSettings, onOpenProfile, userStats }) {
   const router = useRouter();
   const dropdownRef = useRef(null);
   const [isOpen, setIsOpen] = useState(false);
+  const userStat = calculateLevel(user?.stats?.xp)
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -89,7 +91,7 @@ export default function UserProfileDropdown({ user, signOut, onOpenSettings, onO
   return (
     <div className="relative" ref={dropdownRef}>
       {/* Profile Button */}
-      <button
+      <SoundButton
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-15 transition-colors group"
         aria-label="User menu"
@@ -115,7 +117,7 @@ export default function UserProfileDropdown({ user, signOut, onOpenSettings, onO
               {user?.displayName || user?.username || 'User'}
             </div>
             <div className="text-gray-60 text-xs">
-              Level {Math.floor((userStats?.totalScore || 0) / 100) + 1}
+              Level {userStat.level}
             </div>
           </div>
           <ChevronDown 
@@ -123,7 +125,7 @@ export default function UserProfileDropdown({ user, signOut, onOpenSettings, onO
             className={`text-gray-50 transform transition-transform ${isOpen ? 'rotate-180' : ''}`} 
           />
         </div>
-      </button>
+      </SoundButton>
 
       {/* Dropdown Menu */}
       {isOpen && (
@@ -150,7 +152,7 @@ export default function UserProfileDropdown({ user, signOut, onOpenSettings, onO
                     {user?.email}
                   </div>
                   <div className="flex items-center space-x-3 mt-1 text-xs text-purple-95">
-                    <span>Level {calculateLevel(user.xp).level}</span>
+                    <span>Level {userStat.level}</span>
                     <span>•</span>
                     <span>{userStats?.battlesWon || 0} wins</span>
                     <span>•</span>
@@ -163,7 +165,8 @@ export default function UserProfileDropdown({ user, signOut, onOpenSettings, onO
             {/* Menu Items */}
             <div className="py-1">
               {menuItems.map((item, index) => (
-                <button
+                <SoundButton
+                  soundEffect='swipe'
                   key={index}
                   onClick={() => handleMenuItemClick(item.action)}
                   className={`w-full flex items-center px-4 py-2 text-left transition-colors ${
@@ -187,7 +190,7 @@ export default function UserProfileDropdown({ user, signOut, onOpenSettings, onO
                   {item.label === 'Notifications' && (
                     <div className="w-2 h-2 bg-purple-60 rounded-full ml-2"></div>
                   )}
-                </button>
+                </SoundButton>
               ))}
             </div>
 
@@ -208,95 +211,14 @@ export default function UserProfileDropdown({ user, signOut, onOpenSettings, onO
   );
 }
 
-// Alternative Minimal Version (if you prefer simpler):
-export function UserProfileDropdownMinimal({ user, signOut, onOpenSettings }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  return (
-    <div className="relative" ref={dropdownRef}>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="relative group"
-      >
-        <Image
-          width={40} height={40}
-          src={user?.avatar || '/default-avatar.png'}
-          alt="Profile"
-          className="rounded-full object-cover border-2 border-gray-20 group-hover:border-purple-60 transition-colors"
-          onError={(e) => {
-            e.target.src = '/default-avatar.png';
-          }}
-        />
-        <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-gray-08 rounded-full"></div>
-      </button>
-
-      {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-48 bg-gray-10 border border-gray-20 rounded-lg shadow-xl z-50 overflow-hidden">
-          <div className="p-3 border-b border-gray-20">
-            <div className="text-white font-medium truncate">
-              {user?.displayName || user?.username || 'User'}
-            </div>
-            <div className="text-gray-60 text-sm truncate">
-              {user?.email}
-            </div>
-          </div>
-          
-          <div className="py-1">
-            <button
-              onClick={() => {
-                setIsOpen(false);
-                onOpenSettings && onOpenSettings();
-              }}
-              className="w-full flex items-center px-3 py-2 text-gray-50 hover:bg-gray-15 hover:text-white transition-colors"
-            >
-              <Settings size={16} className="mr-2" />
-              Account Settings
-            </button>
-            
-            <button
-              onClick={() => {
-                setIsOpen(false);
-                signOut();
-              }}
-              className="w-full flex items-center px-3 py-2 text-red-300 hover:bg-red-900/20 hover:text-red-200 transition-colors"
-            >
-              <LogOut size={16} className="mr-2" />
-              Log Out
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
 
 /* Usage Examples:
 
-// Full Featured Version:
 <UserProfileDropdown 
   user={user}
   signOut={signOut}
   onOpenSettings={() => setShowSettings(true)}
   onOpenProfile={() => setShowProfile(true)}
   userStats={user?.stats}
-/>
-
-// Minimal Version:
-<UserProfileDropdownMinimal 
-  user={user}
-  signOut={signOut}
-  onOpenSettings={() => setShowSettings(true)}
 />
 */

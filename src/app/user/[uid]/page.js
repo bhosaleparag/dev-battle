@@ -14,7 +14,7 @@ import {
   TrendingUp,
   Award
 } from 'lucide-react';
-import calculateLevel from '@/utils/calculateLevel';
+import { calculateLevel } from '@/utils/calculateLevel';
 import StatCard from '@/components/ui/StatCard';
 import EditBtn from './EditBtn';
 import calculateAge from '@/utils/calculateAge';
@@ -29,8 +29,8 @@ export default async function UserProfilePage({ params }) {
   }
 
   const age = profile?.birthDate ? calculateAge(profile.birthDate) : null;
-  const { level, currentXP, nextLevelXP } = calculateLevel(profile.stats.xp);
-  const xpProgress = (currentXP / nextLevelXP) * 100;
+  const { level, currentXP, xpForNextLevel, progressPercentage } = calculateLevel(profile.stats.xp);
+
   const winRate = profile?.stats?.quizzesTaken > 0 
     ? Math.round((profile.stats?.battlesWon / profile.stats.quizzesTaken) * 100) 
     : 0;
@@ -53,7 +53,7 @@ export default async function UserProfilePage({ params }) {
               {/* Avatar */}
               <div className="relative">
                 <img 
-                  src={profile.avatar} 
+                  src={profile.avatar || '/default-avatar.png'} 
                   alt={profile.username}
                   className="w-28 h-28 md:w-36 md:h-36 rounded-2xl border-4 border-gray-10 object-cover"
                 />
@@ -106,12 +106,12 @@ export default async function UserProfilePage({ params }) {
             <div className="mt-6 bg-gray-15 rounded-xl p-4">
               <div className="flex justify-between text-sm mb-2">
                 <span className="text-gray-50">Experience Progress</span>
-                <span className="text-purple-60 font-semibold">{currentXP} / {nextLevelXP} XP</span>
+                <span className="text-purple-60 font-semibold">{currentXP} / {xpForNextLevel} XP</span>
               </div>
               <div className="w-full bg-gray-20 rounded-full h-3 overflow-hidden">
                 <div 
                   className="bg-gradient-to-r from-purple-60 to-purple-70 h-full rounded-full transition-all duration-500"
-                  style={{ width: `${xpProgress}%` }}
+                  style={{ width: `${progressPercentage}%` }}
                 ></div>
               </div>
             </div>

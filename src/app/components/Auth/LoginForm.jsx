@@ -10,6 +10,7 @@ import Button from "../ui/Button";
 import useAuth from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { handleGoogleLogin, handleLogin } from "@/api/actions/firebaseAuth";
+import { SoundButton } from "../ui/SoundButton";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -50,9 +51,9 @@ export default function LoginForm() {
         name="password"
         placeholder="Password"
         endIcon={
-          <button type="button" onClick={() => setShowPassword(!showPassword)}>
+          <SoundButton type="button" onClick={() => setShowPassword(!showPassword)}>
               {showPassword ? <EyeOff/> : <Eye/>}
-          </button>
+          </SoundButton>
         }
       />
       <Button type="submit">{isPending ? 'submitting...' : 'Login'}</Button>

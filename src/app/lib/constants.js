@@ -1,15 +1,13 @@
-// constants/MenuRoutes.js
 import { 
-  Home, 
-  Compass, 
-  Swords, 
-  Trophy, 
-  Settings, 
-  MessageSquare,
-  Users,
-  TrendingUp,
-  Gamepad2,
-  Search
+  Home, Compass, Swords, Trophy, Settings, MessageSquare,Users, 
+  TrendingUp, Gamepad2, Crown, Medal, Award, Star,
+  Shield, Zap, Code, Target, BookOpen, FileInput, TestTube2,
+  Terminal, AreaChart, Atom, BadgeCent, BadgeCheck, BrainCircuit, 
+  BrainCog, Bug, UserPlus, CalendarCheck, CalendarDays, CalendarHeart, CalendarRange, Component, 
+  Construction, Copy, Diamond, Dice5, Flame, Footprints, 
+  GalleryThumbnails, GanttChartSquare, Gem, Globe, Hammer, 
+  HeartHandshake, Infinity, LineChart, Milestone, Network, Orbit, 
+  Rocket, ShieldCheck, Sigma, Sparkle, Sparkles, SunMoon
 } from 'lucide-react';
 
 export const MenuRoutes = [
@@ -52,6 +50,45 @@ export const MenuRoutes = [
   }
 ];
 
+export const getRankIcon = (rank) => {
+  if (rank === 1) return <Crown className="w-5 h-5 text-yellow-400" />;
+  if (rank === 2) return <Medal className="w-5 h-5 text-gray-400" />;
+  if (rank === 3) return <Award className="w-5 h-5 text-yellow-600" />;
+  return <span className="text-gray-60 font-medium">#{rank}</span>;
+};
+
+export const getAchievementIcon = (achievement) => {
+  const iconMap = {
+    crown: Crown,
+    trophy: Trophy,
+    star: Star,
+    medal: Medal,
+    award: Award,
+    zap: Zap,
+    shield: Shield,
+    code: Code,
+    target: Target
+  };
+  const IconComponent = iconMap[achievement] || Award;
+  return <IconComponent className="w-4 h-4" />;
+};
+
+export const AchievementIcons = {
+  AreaChart, Atom, Award, BadgeCent, BadgeCheck, BrainCircuit, BrainCog, Bug, 
+  CalendarCheck, CalendarDays, CalendarHeart, CalendarRange, Component, 
+  Construction, Copy, Crown, Diamond, Dice5, Flame, Footprints, 
+  GalleryThumbnails, Gamepad2, GanttChartSquare, Gem, Globe, Hammer, 
+  HeartHandshake, Infinity, LineChart, Medal, Milestone, Network, Orbit, 
+  Rocket, Shield, ShieldCheck, Sigma, Sparkle, Sparkles, SunMoon, Swords, 
+  TrendingUp, Trophy, UserPlus, Users
+}
+
+export const codeEditorTabs = [
+  { id: 'problem', label: 'Problem', icon: BookOpen },
+  { id: 'inputs', label: 'Inputs', icon: FileInput },
+  { id: 'results', label: 'Results', icon: TestTube2 },
+  { id: 'output', label: 'Output', icon: Terminal }
+];
 
 export const SecondaryRoutes = [
   { 

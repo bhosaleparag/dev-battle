@@ -1,7 +1,9 @@
 "use client";
 
+import { SoundButton } from "./SoundButton";
+
 export default function Button({ children, variant = "filled", className = "", ...props }) {
-  const baseStyles = "px-4 py-2 rounded-md font-semibold transition-colors duration-200";
+  const baseStyles = "px-4 py-2 rounded-md font-semibold transition-colors duration-200 disabled:bg-gray-30 disabled:cursor-not-allowed";
   const filled =
     "bg-purple-60 text-white border-none hover:bg-purple-60/80";
   const outlined =
@@ -12,11 +14,11 @@ export default function Button({ children, variant = "filled", className = "", .
   const variantStyles = variant === "outlined" ? outlined : variant === "text" ? text : filled;
 
   return (
-    <button
+    <SoundButton
       {...props}
       className={`${baseStyles} ${variantStyles} ${className}`}
     >
       {children}
-    </button>
+    </SoundButton>
   );
 }

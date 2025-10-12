@@ -1,4 +1,4 @@
-import { doc, getDoc, collection, query, where, getDocs, orderBy } from "firebase/firestore";
+import { doc, getDoc, collection, query, where, getDocs, orderBy, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 // Function to fetch user details
@@ -75,4 +75,3 @@ export const searchUsers = async (searchTerm, friends = []) => {
 
   return Array.from(uniqueUsers.values());
 }
-

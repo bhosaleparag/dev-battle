@@ -3,6 +3,7 @@ import { useEffect, useState, useRef } from 'react';
 import { X, Send, MessageCircle, Edit3, Trash2, Check, Users } from 'lucide-react';
 import useAuth from '@/hooks/useAuth';
 import { useSocketContext } from '@/context/SocketProvider';
+import { SoundButton } from '../ui/SoundButton';
 
 const ChatWidget = ({ chatType='friend', roomId=null, title='Match Chat', isOpen = false, onClose }) => {
   const { user } = useAuth();
@@ -93,7 +94,7 @@ const ChatWidget = ({ chatType='friend', roomId=null, title='Match Chat', isOpen
     if (!newText.trim()) return;
     
     try {
-      await editMessage(messageId, newText.trim(), chatType);
+      await editMessage(messageId, newText.trim(), chatType, roomId);
       setEditingMessage(null);
       setEditText('');
     } catch (error) {
@@ -103,7 +104,8 @@ const ChatWidget = ({ chatType='friend', roomId=null, title='Match Chat', isOpen
 
   const handleDeleteMessage = async (messageId) => {
     try {
-      await deleteMessage(messageId, chatType);
+      await deleteMessage(messageId, chatType, roomId);
+      
     } catch (error) {
       console.error('Error deleting message:', error);
     }
@@ -146,12 +148,12 @@ const ChatWidget = ({ chatType='friend', roomId=null, title='Match Chat', isOpen
               </div>
             </div>
           </div>
-          <button
+          <SoundButton
             onClick={onClose}
             className="p-2 hover:bg-gray-15 rounded-lg transition-all duration-200 text-gray-50 hover:text-white-99"
           >
             <X size={18} />
-          </button>
+          </SoundButton>
         </div>
       </div>
 
@@ -202,13 +204,13 @@ const ChatWidget = ({ chatType='friend', roomId=null, title='Match Chat', isOpen
                           autoFocus
                         />
                         <div className="flex gap-2">
-                          <button
+                          <SoundButton
                             onClick={() => handleEditMessage(msg.id, editText)}
                             className="p-1 hover:bg-gray-20 rounded text-green-400"
                           >
                             <Check size={12} />
-                          </button>
-                          <button
+                          </SoundButton>
+                          <SoundButton
                             onClick={() => {
                               setEditingMessage(null);
                               setEditText('');
@@ -216,7 +218,7 @@ const ChatWidget = ({ chatType='friend', roomId=null, title='Match Chat', isOpen
                             className="p-1 hover:bg-gray-20 rounded text-red-400"
                           >
                             <X size={12} />
-                          </button>
+                          </SoundButton>
                         </div>
                       </div>
                     ) : (
@@ -236,7 +238,7 @@ const ChatWidget = ({ chatType='friend', roomId=null, title='Match Chat', isOpen
                   {isOwn && !isEditing && (
                     <div className="absolute top-0 right-full mr-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                       <div className="flex gap-1 bg-gray-10 border border-gray-20 rounded-lg p-1">
-                        <button
+                        <SoundButton
                           onClick={() => {
                             setEditingMessage(msg.id);
                             setEditText(msg.message);
@@ -245,14 +247,14 @@ const ChatWidget = ({ chatType='friend', roomId=null, title='Match Chat', isOpen
                           title="Edit"
                         >
                           <Edit3 size={12} />
-                        </button>
-                        <button
+                        </SoundButton>
+                        <SoundButton
                           onClick={() => handleDeleteMessage(msg.id)}
                           className="p-1 hover:bg-gray-15 rounded text-gray-50 hover:text-red-400"
                           title="Delete"
                         >
                           <Trash2 size={12} />
-                        </button>
+                        </SoundButton>
                       </div>
                     </div>
                   )}
@@ -304,7 +306,7 @@ const ChatWidget = ({ chatType='friend', roomId=null, title='Match Chat', isOpen
               maxLength={1000}
             />
           </div>
-          <button
+          <SoundButton
             onClick={handleSubmit}
             disabled={!isConnected || isLoading || !message.trim()}
             className={`px-4 py-3 rounded-xl font-medium transition-all duration-200 flex items-center gap-2 ${
@@ -318,7 +320,7 @@ const ChatWidget = ({ chatType='friend', roomId=null, title='Match Chat', isOpen
             ) : (
               <Send size={16} />
             )}
-          </button>
+          </SoundButton>
         </div>
       </div>
     </div>

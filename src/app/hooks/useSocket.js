@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState, useCallback } from 'react';
 import io from 'socket.io-client';
+import { toast } from 'sonner';
 
 const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3001';
 
@@ -32,7 +33,6 @@ export const useSocket = (userId, username) => {
 
     // Connection event handlers
     socketInstance.on('connect', () => {
-      console.log('Connected to socket server');
       setSocket(socketInstance);
       setIsConnected(true);
       setConnectionError(null);
@@ -43,7 +43,6 @@ export const useSocket = (userId, username) => {
     });
 
     socketInstance.on('disconnect', (reason) => {
-      console.log('Disconnected from socket server:', reason);
       setIsConnected(false);
       
       if (reason === 'io server disconnect') {
@@ -53,7 +52,7 @@ export const useSocket = (userId, username) => {
     });
 
     socketInstance.on('connect_error', (error) => {
-      console.error('Socket connection error:', error);
+      // toast.error(error);
       setConnectionError(error.message);
       setReconnectAttempts(prev => prev + 1);
     });
@@ -66,12 +65,12 @@ export const useSocket = (userId, username) => {
     });
 
     socketInstance.on('reconnect_error', (error) => {
-      console.error('Socket reconnection error:', error);
+      // toast.error(error);
       setConnectionError(error.message);
     });
 
     socketInstance.on('reconnect_failed', () => {
-      console.error('Socket reconnection failed');
+      toast.error('Socket reconnection failed');
       setConnectionError('Failed to reconnect to server');
     });
 
@@ -256,7 +255,7 @@ export const usePresence = (socket, isConnected) => {
 
     // Handle errors
     socket.on('presence-error', (error) => {
-      console.error('Presence error:', error.message);
+      toast.error(error.message);
     });
 
     return () => {
@@ -381,15 +380,15 @@ export const useChat = (socket, isConnected) => {
     }
   }, [socket, isConnected]);
 
-  const editMessage = useCallback((messageId, newMessage, chatType) => {
+  const editMessage = useCallback((messageId, newMessage, chatType, roomId) => {
     if (socket && isConnected) {
-      socket.emit('edit-message', { messageId, newMessage, chatType });
+      socket.emit('edit-message', { messageId, newMessage, chatType, roomId });
     }
   }, [socket, isConnected]);
 
-  const deleteMessage = useCallback((messageId, chatType) => {
+  const deleteMessage = useCallback((messageId, chatType, roomId) => {
     if (socket && isConnected) {
-      socket.emit('delete-message', { messageId, chatType });
+      socket.emit('delete-message', { messageId, chatType, roomId });
     }
   }, [socket, isConnected]);
 
@@ -480,6 +479,10 @@ export const useChat = (socket, isConnected) => {
       }, 3000);
     });
 
+    socket.on('chat-error', (data) => {
+      toast.error(data.message)
+    });
+
     socket.on('user-stopped-typing', (data) => {
       setTypingUsers(prev => prev.filter(user => user.userId !== data.userId));
       if (typingTimeoutRef.current[data.userId]) {
@@ -521,20 +524,27 @@ export const useChat = (socket, isConnected) => {
   };
 };
 
-// Hook for room management
-export const useRooms = (socket, isConnected) => {
+// Hook for room and matchmaking management
+export const useRooms = (socket, isConnected, user) => {
   const [availableRooms, setAvailableRooms] = useState([]);
   const [currentRoom, setCurrentRoom] = useState(null);
   const [roomEvents, setRoomEvents] = useState([]);
+  const [gameResult, setGameResult] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [countdown, setCountdown] = useState(null);
 
+  // ============ ROOM ACTIONS ============
+  
   const createRoom = useCallback((roomName, roomType, maxPlayers, gameSettings) => {
     if (socket && isConnected) {
+      setIsLoading(true);
       socket.emit('create-room', { roomName, roomType, maxPlayers, gameSettings });
     }
   }, [socket, isConnected]);
 
   const joinRoom = useCallback((roomId) => {
     if (socket && isConnected) {
+      setIsLoading(true);
       socket.emit('join-room', { roomId });
     }
   }, [socket, isConnected]);
@@ -543,6 +553,7 @@ export const useRooms = (socket, isConnected) => {
     if (socket && isConnected) {
       socket.emit('leave-room', { roomId });
       setCurrentRoom(null);
+      setRoomEvents([]);
     }
   }, [socket, isConnected]);
 
@@ -570,37 +581,133 @@ export const useRooms = (socket, isConnected) => {
     }
   }, [socket, isConnected]);
 
+  // ============ MATCHMAKING ACTIONS ============
+  
+  const quickMatch = useCallback((skillLevel = 1000, gameSettings) => {
+    if (socket && isConnected) {
+      console.log('skillLevel', skillLevel)
+      setIsLoading(true);
+      socket.emit('quick-match', { skillLevel, gameSettings });
+    }
+  }, [socket, isConnected]);
+
+  const cancelMatchmaking = useCallback(() => {
+    if (socket && isConnected) {
+      socket.emit('cancel-matchmaking', {});
+      setIsLoading(false);
+    }
+  }, [socket, isConnected]);
+
+  const getQueueStatus = useCallback(() => {
+    if (socket && isConnected) {
+      socket.emit('get-queue-status', {});
+    }
+  }, [socket, isConnected]);
+
+  // ============ GAME EVENTS ============
+
+  const solveBug = useCallback((roomId, points) => {
+    emitGameEvent(roomId, 'bug-solved', { points });
+  }, [emitGameEvent]);
+
+  const answerQuestion = useCallback((roomId, points) => {
+    emitGameEvent(roomId, 'question-answered', { points });
+  }, [emitGameEvent]);
+
+  const solveTestCase = useCallback((roomId, points) => {
+    console.log('test-case-passed')
+    emitGameEvent(roomId, 'test-case-passed', { points });
+  }, [emitGameEvent]);
+
+  const updateTimer = useCallback((roomId, timeRemaining, totalTime) => {
+    emitGameEvent(roomId, 'timer-update', { timeRemaining, totalTime });
+  }, [emitGameEvent]);
+
+  const finishGame = useCallback((roomId) => {
+    setIsLoading(true);
+    console.log('game-finished')
+    emitGameEvent(roomId, 'game-finished', {});
+  }, [emitGameEvent]);
+
+  const surrender = useCallback((roomId) => {
+    console.log('surrender', roomId)
+    emitGameEvent(roomId, 'player-surrender', {});
+  }, [emitGameEvent]);
+
+  // ============ SOCKET EVENT LISTENERS ============
+
   useEffect(() => {
     if (!socket || !isConnected) return;
 
+    // Room Creation
     socket.on('room-created', (data) => {
       setCurrentRoom(data.room);
       setAvailableRooms(prev => [...prev, data.room]);
+      setIsLoading(false);
     });
 
+    // Room Joined
     socket.on('room-joined', (data) => {
       setCurrentRoom(data.room);
+      setIsLoading(false);
     });
 
+    // Room Left
     socket.on('room-left', (data) => {
       setCurrentRoom(null);
+      setRoomEvents([]);
+      setIsLoading(false);
     });
 
+    // Available Rooms
     socket.on('available-rooms', (data) => {
       setAvailableRooms(data.rooms);
     });
 
+    // New Room Available (broadcast)
+    socket.on('new-room-available', (data) => {
+      setAvailableRooms(prev => {
+        const exists = prev.some(room => room.id === data.room.id);
+        if (!exists) {
+          return [...prev, data.room];
+        }
+        return prev;
+      });
+    });
+
+    // Room Updated (broadcast)
+    socket.on('room-updated', (data) => {
+      setAvailableRooms(prev => 
+        prev.map(room => 
+          room.id === data.roomId 
+            ? { ...room, currentPlayers: data.currentPlayers } 
+            : room
+        )
+      );
+    });
+
+    // Room Deleted (broadcast)
+    socket.on('room-deleted', (data) => {
+      setAvailableRooms(prev => prev.filter(room => room.id !== data.roomId));
+      if (currentRoom && currentRoom.id === data.roomId) {
+        setCurrentRoom(null);
+        setRoomEvents([]);
+      }
+    });
+
+    // Room Details
     socket.on('room-details', (data) => {
       setCurrentRoom(data.room);
     });
 
+    // User Joined Room
     socket.on('user-joined-room', (data) => {
       if (currentRoom && currentRoom.id === data.roomId) {
         setCurrentRoom(prev => ({
           ...prev,
           currentPlayers: data.currentPlayers,
-          participants: [...prev.participants, data.userId],
-          participantDetails: [...prev.participantDetails, {
+          participants: [...(prev.participants || []), data.userId],
+          participantDetails: [...(prev.participantDetails || []), {
             userId: data.userId,
             username: data.username,
             joinedAt: new Date(),
@@ -611,58 +718,249 @@ export const useRooms = (socket, isConnected) => {
       }
     });
 
+    // User Left Room
     socket.on('user-left-room', (data) => {
       if (currentRoom && currentRoom.id === data.roomId) {
         setCurrentRoom(prev => ({
           ...prev,
-          currentPlayers: prev.currentPlayers - 1,
-          participants: prev.participants.filter(id => id !== data.userId),
-          participantDetails: prev.participantDetails.filter(p => p.userId !== data.userId)
+          currentPlayers: Math.max(0, (prev.currentPlayers || 1) - 1),
+          participants: (prev.participants || []).filter(id => id !== data.userId),
+          participantDetails: (prev.participantDetails || []).filter(p => p.userId !== data.userId)
         }));
       }
     });
 
-    socket.on('game-event-received', (event) => {
-      setRoomEvents(prev => [...prev, event]);
+    // Player Ready Status Changed
+    socket.on('player-ready-status-changed', (data) => {
+      if (currentRoom && currentRoom.id === data.roomId) {
+        setCurrentRoom(prev => ({
+          ...prev,
+          participantDetails: (prev.participantDetails || []).map(p =>
+            p.userId === data.userId ? { ...p, isReady: data.isReady } : p
+          )
+        }));
+      }
     });
 
+    // Game Starting Countdown
+    socket.on('game-starting-countdown', (data) => {
+      if (currentRoom && currentRoom.id === data.roomId) {
+        setCountdown(data.countdown)
+      }
+    });
+
+    // Game Started
     socket.on('game-started', (data) => {
       if (currentRoom && currentRoom.id === data.roomId) {
-        setCurrentRoom(prev => ({ ...prev, status: 'playing' }));
+        setCountdown(null)
+        setCurrentRoom(prev => ({ 
+          ...prev, 
+          status: 'playing',
+          gameStartedAt: new Date()
+        }));
+        setRoomEvents([]);
       }
     });
 
+    // Score Updated
+    socket.on('score-updated', (data) => {
+      if (currentRoom && currentRoom.id === data.roomId) {
+        setCurrentRoom(prev => ({
+          ...prev,
+          participantDetails: (prev.participantDetails || []).map(p =>
+            p.userId === data.userId 
+              ? { ...p, score: data.newScore } 
+              : p
+          )
+        }));
+      }
+      
+      // Add to room events
+      setRoomEvents(prev => [...prev, {
+        ...data,
+        type: 'score-update',
+        timestamp: new Date()
+      }]);
+    });
+
+    // Timer Updated
+    // socket.on('timer-updated', (data) => {
+    //   if (currentRoom) {
+    //     setCurrentRoom(prev => ({
+    //       ...prev,
+    //       timeRemaining: data.timeRemaining,
+    //       totalTime: data.totalTime
+    //     }));
+    //   }
+    // });
+
+    // Game Finished
     socket.on('game-finished', (data) => {
       if (currentRoom && currentRoom.id === data.roomId) {
-        setCurrentRoom(prev => ({ ...prev, status: 'finished' }));
+        console.log('game-finished', data)        
+        // Update room state
+        setCurrentRoom(prev => ({ 
+          ...prev, 
+          status: 'finished',
+          gameFinishedAt: new Date()
+        }));
+        setGameResult(data);
+      }
+      setIsLoading(false);
+    });
+
+    // Player Surrendered
+    socket.on('player-surrendered', (data) => {
+      if (currentRoom && currentRoom.id === data.roomId) {
+        setCurrentRoom(prev => ({
+          ...prev,
+          participantDetails: (prev.participantDetails || []).map(p =>
+            p.userId === data.userId 
+              ? { ...p, surrendered: true } 
+              : p
+          )
+        }));
+      }
+      
+      setRoomEvents(prev => [...prev, {
+        ...data,
+        type: 'player-surrendered',
+        timestamp: new Date()
+      }]);
+    });
+
+    // Hint Used
+    socket.on('hint-used-notification', (data) => {
+      setRoomEvents(prev => [...prev, {
+        type: 'hint-used',
+        userId: data.userId,
+        username: data.username,
+        hintType: data.hintType,
+        timestamp: new Date()
+      }]);
+    });
+
+    // All Players Ready (for multi-round games)
+    socket.on('all-players-ready', (data) => {
+      if (currentRoom && currentRoom.id === data.roomId) {
+        setCurrentRoom(prev => ({ 
+          ...prev, 
+          allPlayersReady: true,
+          nextRoundStarting: data.nextRoundStarting
+        }));
       }
     });
 
+    // ============ MATCHMAKING EVENTS ============
+
+    // Match Found
+    socket.on('match-found', (data) => {
+      setCurrentRoom({
+        id: data.roomId,
+        type: 'quick',
+        name: 'Quick Match',
+        participants: data.participants,
+        participantDetails: data.participantDetails,
+        gameSettings: data.gameSettings,
+        maxPlayers: 2,
+        status: 'waiting',
+        matched: true
+      });
+      toast.success(data.message)
+      setIsLoading(false);
+    });
+
+    // Matchmaking Queued
+    socket.on('matchmaking-queued', (data) => {
+      setIsLoading(true);
+      // You can show queue status in UI
+    });
+
+    // Matchmaking Cancelled
+    socket.on('matchmaking-cancelled', (data) => {
+      setIsLoading(false);
+    });
+
+    // Queue Status
+    socket.on('queue-status', (data) => {
+      // Handle queue status (position, wait time, etc.)
+      console.log('Queue Status:', data);
+    });
+
+    // ============ ERROR HANDLING ============
+
+    socket.on('room-error', (data) => {
+      toast.error(data.message)
+      setIsLoading(false);
+    });
+
+    socket.on('matchmaking-error', (data) => {
+      toast.error(data.message)
+      setIsLoading(false);
+    });
+
+    // Cleanup
     return () => {
       socket.off('room-created');
       socket.off('room-joined');
       socket.off('room-left');
       socket.off('available-rooms');
+      socket.off('new-room-available');
+      socket.off('room-updated');
+      socket.off('room-deleted');
       socket.off('room-details');
       socket.off('user-joined-room');
       socket.off('user-left-room');
-      socket.off('game-event-received');
+      socket.off('player-ready-status-changed');
+      socket.off('game-starting-countdown');
       socket.off('game-started');
+      socket.off('score-updated');
+      // socket.off('timer-updated');
       socket.off('game-finished');
+      socket.off('game-result');
+      socket.off('player-surrendered');
+      socket.off('hint-used-notification');
+      socket.off('all-players-ready');
+      socket.off('match-found');
+      socket.off('matchmaking-queued');
+      socket.off('matchmaking-cancelled');
+      socket.off('queue-status');
+      socket.off('room-error');
+      socket.off('matchmaking-error');
     };
   }, [socket, isConnected, currentRoom]);
 
   return {
+    // State
     availableRooms,
     currentRoom,
     roomEvents,
+    gameResult,
+    isLoading,
+    countdown,
+    setGameResult,
+    
+    // Room Actions
     createRoom,
     joinRoom,
     leaveRoom,
     getAvailableRooms,
     toggleReady,
     emitGameEvent,
-    getRoomDetails
+    getRoomDetails,
+    
+    // Matchmaking Actions
+    quickMatch,
+    cancelMatchmaking,
+    getQueueStatus,
+    
+    // Game Actions
+    solveBug,
+    answerQuestion,
+    solveTestCase,
+    updateTimer,
+    finishGame,
+    surrender
   };
 };
 
@@ -679,7 +977,6 @@ export const useLeaderboard = (socket, isConnected) => {
   }, [socket, isConnected]);
 
   const getLeaderboard = useCallback((options = {}) => {
-    console.log(options)
     if (socket && isConnected) {
       socket.emit('get-leaderboard', options);
     }
@@ -700,18 +997,6 @@ export const useLeaderboard = (socket, isConnected) => {
   const getLeaderboardStats = useCallback(() => {
     if (socket && isConnected) {
       socket.emit('get-leaderboard-stats');
-    }
-  }, [socket, isConnected]);
-
-  const subscribeToUpdates = useCallback((gameType) => {
-    if (socket && isConnected) {
-      socket.emit('subscribe-leaderboard-updates', { gameType });
-    }
-  }, [socket, isConnected]);
-
-  const unsubscribeFromUpdates = useCallback((gameType) => {
-    if (socket && isConnected) {
-      socket.emit('unsubscribe-leaderboard-updates', { gameType });
     }
   }, [socket, isConnected]);
 
@@ -763,15 +1048,13 @@ export const useLeaderboard = (socket, isConnected) => {
     getMyPosition,
     recordGameResult,
     getLeaderboardStats,
-    subscribeToUpdates,
-    unsubscribeFromUpdates
   };
 };
 
 
 // Hook for chat functionality
-export const useFriends = (socket, isConnected) => {
-  const [friendList, setFriendList] = useState([]);
+export const useFriends = (socket, isConnected, user) => {
+  const [friendList, setFriendList] = useState({ accepted: [], pending: [] });
 
   const sendFriendRequest = useCallback((targetId) => {
     if (socket && isConnected) {
@@ -792,7 +1075,6 @@ export const useFriends = (socket, isConnected) => {
   }, [socket, isConnected]);
 
   const getFriends = useCallback(() => {
-    console.log('getFriends')
     if (socket && isConnected) {
       socket.emit('get-friends');
     }
@@ -804,8 +1086,38 @@ export const useFriends = (socket, isConnected) => {
     socket.on('friend-list', (friendList) => {
       setFriendList(friendList);
     });
+
+    socket.on('friend-removed', (friend) => {
+      setFriendList(prev => ({
+        ...prev,
+        accepted: prev.accepted.filter(f => f.uid !== friend.by),
+        pending: prev.pending.filter(f => f.uid !== friend.by)
+      }));
+    });
+
+    socket.on('friend-request-accepted', (friend) => {
+      let tempFriend = { uid: friend.from, username: friend.username, presence: 'online', status: 'accepted', senderId: user.uid };
+      setFriendList(prev =>({
+        ...prev,
+        accepted: [...prev.accepted, tempFriend],
+        pending: prev.pending.filter(f => f.uid !== friend.from)
+      }));
+    });
+
+    socket.on('friend-request-received', (friend) => {
+      let tempFriend = { uid: friend.from, username: friend.username, presence: 'online', status: 'pending', senderId: friend.from };
+      setFriendList(prev =>({
+        ...prev,
+        pending: [...prev.pending, tempFriend] 
+      }));
+    });
+
     return () => {
       socket.off('friend-list');
+      socket.off('friend-removed');
+      socket.off('friend-request-accepted');
+      socket.off('friend-request-received');
+
     };
   }, [socket, isConnected]);
 
@@ -815,5 +1127,176 @@ export const useFriends = (socket, isConnected) => {
     removeFriend,
     acceptFriendRequest,
     sendFriendRequest
+  };
+};
+
+export const useAchievements = (socket, isConnected) => {
+  const [achievements, setAchievements] = useState([]);
+  const [myAchievements, setMyAchievements] = useState([]);
+  const [recentUnlocked, setRecentUnlocked] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // ============ ACHIEVEMENT ACTIONS ============
+
+  const getAchievements = useCallback((useCache = true) => {
+    if (socket && isConnected) {
+      setIsLoading(true);
+      socket.emit('get-achievements', { useCache });
+    }
+  }, [socket, isConnected]);
+
+  const getMyAchievements = useCallback((useCache = true) => {
+    if (socket && isConnected) {
+      socket.emit('get-my-achievements', { useCache });
+    }
+  }, [socket, isConnected]);
+
+  const unlockAchievement = useCallback((achievementId) => {
+    if (socket && isConnected) {
+      socket.emit('unlock-achievement', { achievementId });
+    }
+  }, [socket, isConnected]);
+
+  const updateAchievementProgress = useCallback((achievementId, progress) => {
+    if (socket && isConnected) {
+      socket.emit('update-achievement-progress', { achievementId, progress });
+    }
+  }, [socket, isConnected]);
+
+  const checkAchievements = useCallback(() => {
+    if (socket && isConnected) {
+      socket.emit('check-achievements', {});
+    }
+  }, [socket, isConnected]);
+
+  const getAchievementDetails = useCallback((achievementId) => {
+    if (socket && isConnected) {
+      socket.emit('get-achievement-details', { achievementId });
+    }
+  }, [socket, isConnected]);
+
+  // ============ SOCKET EVENT LISTENERS ============
+
+  useEffect(() => {
+    if (!socket || !isConnected) return;
+
+    // Achievements List
+    socket.on('achievements-list', (data) => {
+      setAchievements(data.achievements);
+      setIsLoading(false);
+    });
+
+    // My Achievements
+    socket.on('my-achievements', (data) => {
+      setMyAchievements(data.achievements);
+    });
+
+    // Achievement Unlocked (single)
+    socket.on('achievement-unlocked', (data) => {
+      setRecentUnlocked(prev => [data, ...prev].slice(0, 10)); // Keep last 10
+      
+      // Add to my achievements
+      setMyAchievements(prev => [...prev, {
+        achievement: data.achievement,
+        unlockedAt: data.timestamp,
+        progress: 100
+      }]);
+    });
+
+    // Achievements Unlocked (batch)
+    socket.on('achievements-unlocked-batch', (data) => {
+      setRecentUnlocked(prev => [...data.achievements, ...prev].slice(0, 10));
+      
+      // Add all to my achievements
+      setMyAchievements(prev => [
+        ...prev,
+        ...data.achievements.map(achievement => ({
+          achievement: achievement,
+          unlockedAt: achievement.unlockedAt,
+          progress: 100
+        }))
+      ]);
+    });
+
+    // User Achievement Unlocked (broadcast - other users)
+    socket.on('user-achievement-unlocked', (data) => {
+      toast.success('New achievement has been unlocked!!!')
+    });
+
+    // Achievement Check Complete
+    socket.on('achievement-check-complete', (data) => {
+      if (data.count > 0) {
+        console.log(`${data.count} new achievements unlocked!`);
+      }
+    });
+
+    // Error Handling
+    socket.on('achievement-error', (data) => {
+      toast.error(data.message);
+      setIsLoading(false);
+    });
+
+    // Cleanup
+    return () => {
+      socket.off('achievements-list');
+      socket.off('my-achievements');
+      socket.off('achievement-unlocked');
+      socket.off('achievements-unlocked-batch');
+      socket.off('user-achievement-unlocked');
+      socket.off('achievement-check-complete');
+      socket.off('achievement-error');
+    };
+  }, [socket, isConnected, getAchievements]);
+
+  // Calculate achievement statistics
+  const achievementStats = {
+    total: achievements.length,
+    unlocked: myAchievements.length,
+    locked: achievements.length - myAchievements.length,
+    percentage: achievements.length > 0 
+      ? Math.round((myAchievements.length / achievements.length) * 100) 
+      : 0,
+    totalPoints: myAchievements.reduce((sum, ua) => 
+      sum + (ua.achievement?.points || 0), 0
+    ),
+    byCategory: achievements.reduce((acc, achievement) => {
+      const category = achievement.category || 'other';
+      if (!acc[category]) {
+        acc[category] = { total: 0, unlocked: 0 };
+      }
+      acc[category].total += 1;
+      if (myAchievements.some(ua => ua.achievementId === achievement.achievementId)) {
+        acc[category].unlocked += 1;
+      }
+      return acc;
+    }, {}),
+    byRarity: achievements.reduce((acc, achievement) => {
+      const rarity = achievement.rarity || 'common';
+      if (!acc[rarity]) {
+        acc[rarity] = { total: 0, unlocked: 0 };
+      }
+      acc[rarity].total += 1;
+      if (myAchievements.some(ua => ua.achievementId === achievement.achievementId)) {
+        acc[rarity].unlocked += 1;
+      }
+      return acc;
+    }, {})
+  };
+
+  return {
+    // State
+    achievements,
+    myAchievements,
+    recentUnlocked,
+    achievementStats,
+    isLoading,
+    
+    // Actions
+    getAchievements,
+    getMyAchievements,
+    unlockAchievement,
+    updateAchievementProgress,
+    checkAchievements,
+    getAchievementDetails
   };
 };

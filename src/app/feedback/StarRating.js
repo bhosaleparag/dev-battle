@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Star } from "lucide-react";
 import Typography from "@/components/ui/Typography";
+import { SoundButton } from "@/components/ui/SoundButton";
 
 function StarRating({
   name,
@@ -21,7 +22,7 @@ function StarRating({
       {Array.from({ length: max }, (_, i) => {
         const starValue = i + 1;
         return (
-          <button
+          <SoundButton
             key={starValue}
             type="button"
             onClick={() => setRating(starValue)}
@@ -37,7 +38,7 @@ function StarRating({
                   : "text-gray-400"
               }`}
             />
-          </button>
+          </SoundButton>
         );
       })}
     </div>

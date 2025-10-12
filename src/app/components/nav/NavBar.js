@@ -5,8 +5,10 @@ import { useState, useEffect } from 'react';
 import NavLinks from './NavLinks';
 import UserMenu from './UserMenu';
 import Typography from '../ui/Typography';
+import { useSound } from '@/context/SoundContext';
 
 export default function NavBar() {
+  const { play } = useSound();
   const [isScrolled, setIsScrolled] = useState(false);
 
   // Add scroll effect
@@ -31,6 +33,7 @@ export default function NavBar() {
           {/* Logo */}
           <Link 
             href='/' 
+            onClick={() => play('click')}
             className="flex items-center gap-3 group transition-all duration-300 hover:scale-105"
           >
             <div className="relative">
