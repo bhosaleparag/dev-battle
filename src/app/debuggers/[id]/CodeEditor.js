@@ -10,6 +10,7 @@ import parseInput, { parseMultipleInputs } from '@/utils/parseInput';
 import { calculateXP } from '@/utils/calculateXP';
 import { useRouter } from 'next/navigation';
 import { SoundButton } from '@/components/ui/SoundButton';
+import { useSound } from '@/context/SoundContext';
 
 const formatTime = (seconds) => {
   const mins = Math.floor(seconds / 60);
@@ -35,6 +36,7 @@ const tabs = [
 export default function CodeEditor({ data }) {
   const { user } = useAuth();
   const router = useRouter();
+  const { play } = useSound();
   const [code, setCode] = useState(data?.buggyCode || `function solution(arr) {
     // Write your code here
   }`);
@@ -74,6 +76,9 @@ export default function CodeEditor({ data }) {
     } else if (timeLeft === 0 && timerActive) {
       // Time's up - auto submit
       handleTimeUp();
+    }
+    if(timeLeft<=10){
+      play('timeout')
     }
 
     return () => {

@@ -18,12 +18,14 @@ import NotFound from '@/not-found';
 import { saveQuizResult } from '@/api/firebase/userProgress';
 import { useRouter } from 'next/navigation';
 import { SoundButton } from '../ui/SoundButton';
+import { useSound } from '@/context/SoundContext';
 
 const MAX_LIMIT_PER_QUIZ_QUE = 30;
 
 export default function SinglePlayerQuiz({ quizData }) {
   const router = useRouter();
   const { user } = useAuth();
+  const { play } = useSound();
   const [gameState, setGameState] = useState('start'); // 'start', 'playing', 'results'
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState('');
@@ -35,6 +37,9 @@ export default function SinglePlayerQuiz({ quizData }) {
 
   // Timer effect
   useEffect(() => {
+    if(timeLeft <= 5){
+      play('timeout')
+    }
     if (gameState === 'playing' && timeLeft > 0) {
       const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
       return () => clearTimeout(timer);
@@ -71,7 +76,10 @@ export default function SinglePlayerQuiz({ quizData }) {
       }
     ]);
     if (isCorrect) {
+      play('correct')
       setScore(prevScore => prevScore + (quizData.xp/quizData.questions.length));
+    } else {
+      play('wrong')
     }
 
     if (currentQuestion + 1 < quizData.questions.length) {
@@ -265,7 +273,7 @@ export default function SinglePlayerQuiz({ quizData }) {
 
   // Results Screen
   if (gameState === 'results') {
-    const percentage = Math.round((score / quizData.questions.length) * 100);
+    const percentage = Math.round((score / quizData.xp) * 100);
 
     return (
       <div 
@@ -296,7 +304,7 @@ export default function SinglePlayerQuiz({ quizData }) {
             </div>
             <p className="text-base sm:text-xl text-gray-50">
               You scored <span className="font-bold text-white">{score}</span> out of{' '}
-              <span className="font-bold text-white">{quizData.questions.length}</span> questions correctly
+              <span className="font-bold text-white">{quizData.xp}</span>
             </p>
           </div>
 

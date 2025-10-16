@@ -6,10 +6,12 @@ import { onAuthStateChanged, signOut } from "firebase/auth";
 import usePersistedState from "@/hooks/usePersistedState";
 import { getUserProfile } from "@/api/firebase/users";
 import Loader from "@/loading";
+import { useRouter } from "next/navigation";
 
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
+  const router = useRouter();
   const [hydrated, setHydrated] = useState(false);
   const [user, setUser] = usePersistedState("user", null);
 
@@ -29,6 +31,9 @@ export function AuthProvider({ children }) {
               authorization: `Bearer ${token}`,
             },
           });
+
+          router.replace('/');
+          
         } catch (err) {
           await fetch("/api/auth/session", { method: "DELETE" });
           console.error("Error fetching user profile:", err);
