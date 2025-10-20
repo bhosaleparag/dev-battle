@@ -156,8 +156,9 @@ export async function handleForgotPassword(prevState, formData) {
   }
 
   try {
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
     await sendPasswordResetEmail(auth, email, {
-      url: `${process.env.NEXT_PUBLIC_BASE_URL}/login`, // Redirect URL after reset
+      url: `${baseUrl}/login`,
       handleCodeInApp: false,
     });
 
