@@ -55,28 +55,9 @@ export function SoundProvider({ children }) {
 
   // Update preferences in Firebase
   const updatePreferences = async (newPreferences) => {
-    if (!user?.uid) {
-      // If no user, just update local state
-      setPreferences(prev => ({ ...prev, ...newPreferences }));
-      soundManager.updatePreferences({ ...preferences, ...newPreferences });
-      return;
-    }
-
-    try {
-      const userDocRef = doc(db, 'users', user?.uid);
-      await updateDoc(userDocRef, {
-        'preferences.soundEffects': newPreferences.soundEffects ?? preferences.soundEffects,
-        'preferences.backgroundMusic': newPreferences.backgroundMusic ?? preferences.backgroundMusic,
-        'preferences.vibration': newPreferences.vibration ?? preferences.vibration,
-        'preferences.masterVolume': newPreferences.masterVolume ?? preferences.masterVolume
-      });
-      
-      // Local state will be updated by the onSnapshot listener
-    } catch (error) {
-      // Update local state as fallback
-      setPreferences(prev => ({ ...prev, ...newPreferences }));
-      soundManager.updatePreferences({ ...preferences, ...newPreferences });
-    }
+    // If no user, just update local state
+    setPreferences(prev => ({ ...prev, ...newPreferences }));
+    soundManager.updatePreferences({ ...preferences, ...newPreferences });
   };
 
   const value = {

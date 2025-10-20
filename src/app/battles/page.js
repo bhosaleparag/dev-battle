@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { 
   Swords, Trophy, Users, Plus, Search, X, 
   Zap, LogOut, Check, Loader2, ChevronRight,
@@ -66,7 +66,7 @@ const BattleMatchmaking = () => {
   const router = useRouter();
   const { roomsState, leaderboardState } = useSocketContext();
   const {
-    availableRooms, currentRoom, isLoading, countdown,
+    availableRooms, currentRoom, isLoading, countdown, isConnected,
     createRoom, joinRoom, leaveRoom, getAvailableRooms, toggleReady,
     quickMatch, cancelMatchmaking
   } = roomsState;
@@ -84,6 +84,7 @@ const BattleMatchmaking = () => {
   const [problems, setProblems] = useState([]);
   const [isLoadingChallenges, setIsLoadingChallenges] = useState(false);
   const [page, setPage] = useState(1);
+  const hasFetchedRef = useRef(false);
   const [hasMore, setHasMore] = useState(true);
   const ITEMS_PER_PAGE = 10;
   
@@ -105,7 +106,7 @@ const BattleMatchmaking = () => {
     const randChallenge = await fetchRandomChallenges(selectedGameType || 'quiz');
     const gameSettings = {
       ...randChallenge,
-      gameType: selectedGameType || 'quiz',
+      mode: selectedGameType || 'quiz',
       timeLimit: randChallenge.timeLimit || gameTimeLimit(selectedGameType), 
     };
     await quickMatch(user?.stats?.xp, gameSettings);
@@ -117,13 +118,13 @@ const BattleMatchmaking = () => {
 
   const handleCreateRoom = () => {
     if (!roomName.trim() || !selectedChallenge) return;
-    
     const gameSettings = {
-      gameType: selectedGameType,
       ...selectedChallenge,
+      mode: selectedGameType || 'quiz',
+      timeLimit: selectedChallenge.timeLimit || gameTimeLimit(selectedGameType), 
     };
     
-    createRoom(roomName, 'public', maxPlayers, gameSettings)
+    createRoom(roomName, 'public', maxPlayers, gameSettings, user?.stats?.xp)
     setShowCreateModal(false);
     setRoomName('');
     setSelectedChallenge(null);
@@ -135,8 +136,8 @@ const BattleMatchmaking = () => {
   };
 
   const handleToggleReady = () => {
+    toggleReady(currentRoom.id, !playerReady)
     setPlayerReady(!playerReady);
-    toggleReady(currentRoom.id)
   };
 
   const handleLeaveRoom = () => {
@@ -146,22 +147,26 @@ const BattleMatchmaking = () => {
   };
 
   // Auto-refresh available rooms every 15 seconds
-  // useEffect(() => {
-  //   if (isConnected && !currentRoom) {
-  //     getAvailableRooms();
+  useEffect(() => {
+    if (isConnected && !currentRoom) {
+      getAvailableRooms();
       
-  //     const interval = setInterval(() => {
-  //       getAvailableRooms();
-  //     }, 15000);      
-  //     return () => clearInterval(interval);
-  //   }
-  // }, [isConnected, currentRoom, getAvailableRooms]);
+      const interval = setInterval(() => {
+        getAvailableRooms();
+      }, 15000);      
+      return () => clearInterval(interval);
+    }
+  }, [isConnected, currentRoom, getAvailableRooms]);
 
   const fetchData = async () => {
+    // Prevent duplicate calls
+    if (hasFetchedRef.current) return;
+    
+    hasFetchedRef.current = true;
     setIsLoadingChallenges(true);
+    
     try {
-
-      const data = {quizzes: [], debuggers: [], problems: []}; //fetchChallenges(page);
+      const data = await fetchChallenges(page);
       setQuizzes(prev => [...prev, ...data.quizzes]);
       setDebuggers(prev => [...prev, ...data.debuggers]);
       setProblems(prev => [...prev, ...data.problems]);
@@ -178,6 +183,8 @@ const BattleMatchmaking = () => {
   };
 
   useEffect(() => {
+    // Reset ref when page changes
+    hasFetchedRef.current = false;
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page]);
@@ -429,8 +436,8 @@ const BattleMatchmaking = () => {
                       <span>{currentRoom?.currentPlayers}/{currentRoom?.maxPlayers} Players</span>
                     </div>
                     <div className="flex items-center gap-1">
-                      {getGameTypeIcon(currentRoom?.gameSettings?.gameType)}
-                      <span className="capitalize">{currentRoom?.gameSettings?.gameType}</span>
+                      {getGameTypeIcon(currentRoom?.gameSettings?.mode)}
+                      <span className="capitalize">{currentRoom?.gameSettings?.mode}</span>
                     </div>
                   </div>
                 </div>
@@ -457,7 +464,7 @@ const BattleMatchmaking = () => {
                         <div className="text-sm text-gray-50">XP: {player?.skillLevel}</div>
                       </div>
                     </div>
-                    {idx === 0 && playerReady && (
+                    {player?.isReady && (
                       <div className="flex items-center gap-2 text-green-400 text-sm font-medium">
                         <Check className="w-4 h-4" />
                         Ready
@@ -657,7 +664,7 @@ const BattleMatchmaking = () => {
         <GameStartCountdown 
           duration={countdown} 
           onComplete={() => {
-            router.push(`${currentRoom?.gameSettings?.gameType || 'quiz'}/${currentRoom?.gameSettings?._id}/${currentRoom.id}`)
+            router.push(`${currentRoom?.gameSettings?.mode || 'quiz'}/${currentRoom?.gameSettings?._id}/${currentRoom.id}`)
           }} 
         />
       )}

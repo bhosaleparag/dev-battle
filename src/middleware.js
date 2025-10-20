@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 export function middleware(request) {
-  let allowedPath = ['/', '/login', '/register'];
+  let allowedPath = ['/', '/login', '/register', '/forgot-password'];
   const { pathname } = request.nextUrl;
   const sessionCookie = request.cookies.get('authToken');
 
@@ -12,7 +12,7 @@ export function middleware(request) {
   }
 
   // Case 2: Already logged in but trying to access login/register
-  if (sessionCookie && (pathname.startsWith('/login') || pathname.startsWith('/register'))) {
+  if (sessionCookie && (pathname.startsWith('/login') || pathname.startsWith('/register') || pathname.startsWith('forgot-password'))) {
     return NextResponse.redirect(new URL('/', request.url));
   }
 

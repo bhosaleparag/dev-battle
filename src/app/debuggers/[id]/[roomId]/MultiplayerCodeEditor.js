@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect, useRef } from 'react';
 import { Play, Send, Clock, Terminal, TestTube2, GripVertical, BookOpen, FileInput, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
-import CodeMirror from '@uiw/react-codemirror';
+import CodeMirror, { EditorView } from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { vscodeDark } from '@uiw/codemirror-theme-vscode';
 import { useSocketContext } from '@/context/SocketProvider';
@@ -47,7 +47,7 @@ export default function MultiplayerCodeEditor({ data, roomId }) {
       timeLimit: data?.timeLimit,
       isTimeLimit: true
     },
-    participants: currentRoom?.participants || {},
+    participants: currentRoom?.participants || [],
     participantDetails: currentRoom?.participantDetails || [],
     startTime: currentRoom?.startTime,
     status: currentRoom?.status
@@ -381,7 +381,15 @@ export default function MultiplayerCodeEditor({ data, roomId }) {
                 value={code}
                 height="100vh"
                 theme={vscodeDark}
-                extensions={[javascript({ jsx: true })]}
+                extensions={[
+                  javascript({ jsx: true }),
+                  EditorView.domEventHandlers({
+                    paste: (event) => {
+                      event.preventDefault();
+                      return true;
+                    }
+                  })
+                ]}
                 onChange={onChange}
                 className="text-md"
               />

@@ -2,8 +2,10 @@
 import { formatTime } from "@/utils/time";
 import ChatWidget from "../realtime/ChatWidget";
 import { useEffect, useRef, useState } from "react";
-import { Award, Clock, Flag, MessageSquare, Target, TrendingUp, Trophy, Zap } from "lucide-react";
+import { Award, Clock, Flag, MessageSquare, Target, TrendingUp, Trophy, Zap, Crown, Medal } from "lucide-react";
 import { SoundButton } from "./SoundButton";
+import { useSound } from "@/context/SoundContext";
+import PlayerCard from "./PlayerCard";
 
 // Get event icon
 const getEventIcon = (type) => {
@@ -38,14 +40,14 @@ const MultiplayerTopBar = ({
   roomEvents = [],
   onSurrender,
   onChatOpen,
-  gameState='',
+  gameState = '',
   onTimeUp
 }) => {
+  const { play } = useSound();
   const [timeRemaining, setTimeRemaining] = useState(null);
   const [chatOpen, setChatOpen] = useState(false);
   const [showEvents, setShowEvents] = useState(false);
   const eventsRef = useRef(null);
-  const timerRef = useRef(null);
 
   // Get timer color based on remaining time
   const getTimerColor = () => {
@@ -55,35 +57,41 @@ const MultiplayerTopBar = ({
     return 'text-green-400';
   };
   
-  // Get current user and opponent
-  const players = roomData?.players || {};
-  const currentPlayer = players[currentUserId];
-  const opponent = Object.values(players).find(p => p.userId !== currentUserId);
+  // Get all players and sort by score
+  console.log(roomData)
+  const players = roomData?.participantDetails || {};
+  const playersArray = Object.values(players).sort((a, b) => (b.score || 0) - (a.score || 0));
+  const playerCount = playersArray.length;
 
-  // MultiplayerTopBar component
+  // Timer effect
   useEffect(() => {
-    if (!roomData?.challenge?.timeLimit || gameState !== 'playing') return;
+    if (!roomData?.challenge?.timeLimit || gameState !== 'playing') {
+      return;
+    }
 
-    const startTime = Date.now();
-    const endTime = startTime + roomData.challenge.timeLimit * 1000;
+    const timeLimit = roomData.challenge.timeLimit;
+    let elapsed = 0;
 
     const interval = setInterval(() => {
-      const remaining = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
+      elapsed++;
+      const remaining = Math.max(0, timeLimit - elapsed);
       
       setTimeRemaining(remaining);
       
       if (remaining === 0) {
         clearInterval(interval);
-        onTimeUp?.(); // Callback to parent
+        onTimeUp?.();
+      }
+      if(remaining <= 5){
+        play('timeout')
       }
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [roomData?.challenge?.timeLimit, gameState]);
+  }, [roomData?.challenge?.timeLimit, gameState, onTimeUp]);
 
   return (
     <>
-      {/* Top Bar */}
       <div 
         className="sticky top-0 z-40 border-b border-gray-20"
         style={{
@@ -92,59 +100,25 @@ const MultiplayerTopBar = ({
         }}
       >
         <div className="max-w-7xl mx-auto px-3 sm:px-6 py-3 sm:py-4">
-          {/* Mobile Layout */}
           <div className="flex lg:hidden flex-col gap-3">
-            {/* Top Row - Players */}
-            <div className="flex items-center justify-between gap-2">
-              {/* Current Player */}
-              <div className="flex items-center gap-2 bg-gray-15 border border-purple-60 rounded-lg px-3 py-2 flex-1">
-                <div className="relative">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-60 to-purple-75 flex items-center justify-center text-white font-bold text-xs">
-                    {currentPlayer?.username?.[0]?.toUpperCase() || 'U'}
-                  </div>
-                  <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full border-2 border-gray-10" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-white font-semibold text-xs truncate">
-                    {currentPlayer?.username || 'You'}
-                  </p>
-                  <div className="flex items-center gap-1">
-                    <Trophy className="w-3 h-3 text-purple-60" />
-                    <span className="text-purple-60 font-bold text-xs">
-                      {currentPlayer?.score || 0}
-                    </span>
-                  </div>
-                </div>
+            <div className="relative">
+              <div className={`flex gap-2 ${playerCount > 2 ? 'overflow-x-auto scrollbar-hide pb-2' : 'justify-between'}`}>
+                {playersArray.map((player, index) => (
+                  <PlayerCard
+                    key={player.userId}
+                    player={player}
+                    isCurrentUser={player.userId === currentUserId}
+                    position={index}
+                    compact={playerCount > 3}
+                  />
+                ))}
               </div>
-
-              {/* VS */}
-              <div className="px-2 py-1 bg-gradient-to-r from-purple-60 to-purple-70 rounded">
-                <span className="text-white font-bold text-[10px]">VS</span>
-              </div>
-
-              {/* Opponent */}
-              <div className="flex items-center gap-2 bg-gray-15 border border-gray-20 rounded-lg px-3 py-2 flex-1">
-                <div className="relative">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-30 to-gray-40 flex items-center justify-center text-white font-bold text-xs">
-                    {opponent?.username?.[0]?.toUpperCase() || 'O'}
-                  </div>
-                  <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full border-2 border-gray-10" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-white font-semibold text-xs truncate">
-                    {opponent?.username || 'Opponent'}
-                  </p>
-                  <div className="flex items-center gap-1">
-                    <Trophy className="w-3 h-3 text-gray-50" />
-                    <span className="text-white font-bold text-xs">
-                      {opponent?.score || 0}
-                    </span>
-                  </div>
-                </div>
-              </div>
+              {playerCount > 2 && (
+                <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-gray-10 to-transparent pointer-events-none" />
+              )}
             </div>
 
-            {/* Bottom Row - Info & Actions */}
+            {/* Game Info & Actions */}
             <div className="flex items-center justify-between gap-2">
               {/* Game Info */}
               <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -198,55 +172,25 @@ const MultiplayerTopBar = ({
           </div>
 
           {/* Desktop Layout */}
-          <div className="hidden lg:flex items-center justify-between gap-4">
-            {/* Left Side - Players */}
-            <div className="flex items-center gap-4 flex-1">
-              {/* Current Player */}
-              <div className="flex items-center gap-3 bg-gray-15 border border-purple-60 rounded-xl px-4 py-2.5 min-w-[200px]">
-                <div className="relative">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-60 to-purple-75 flex items-center justify-center text-white font-bold">
-                    {currentPlayer?.username?.[0]?.toUpperCase() || 'U'}
-                  </div>
-                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-gray-10" />
+            <div className="hidden lg:flex items-start justify-between gap-4">
+              {/* Left Side - Players */}
+              <div className={`flex ${playerCount <= 2 ? 'items-center gap-4' : 'gap-2 overflow-x-auto max-w-[600px]'} flex-1`}>
+              {playersArray.map((player, index) => (
+                <PlayerCard
+                  key={player.userId}
+                  player={player}
+                  isCurrentUser={player.userId === currentUserId}
+                  position={index}
+                  compact={playerCount > 4}
+                />
+              ))}
+              
+              {/* VS Badge for 2 players */}
+              {playerCount === 2 && (
+                <div className="px-3 py-1 bg-gradient-to-r from-purple-60 to-purple-70 rounded-lg">
+                  <span className="text-white font-bold text-xs">VS</span>
                 </div>
-                <div className="flex-1">
-                  <p className="text-white font-semibold text-sm truncate">
-                    {currentPlayer?.username || 'You'}
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <Trophy className="w-3.5 h-3.5 text-purple-60" />
-                    <span className="text-purple-60 font-bold text-sm">
-                      {currentPlayer?.skillLevel || 0}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* VS Badge */}
-              <div className="px-3 py-1 bg-gradient-to-r from-purple-60 to-purple-70 rounded-lg">
-                <span className="text-white font-bold text-xs">VS</span>
-              </div>
-
-              {/* Opponent */}
-              <div className="flex items-center gap-3 bg-gray-15 border border-gray-20 rounded-xl px-4 py-2.5 min-w-[200px]">
-                <div className="relative">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-30 to-gray-40 flex items-center justify-center text-white font-bold">
-                    {opponent?.username?.[0]?.toUpperCase() || 'O'}
-                  </div>
-                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-gray-10" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-white font-semibold text-sm truncate">
-                    {opponent?.username || 'Opponent'}
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <Trophy className="w-3.5 h-3.5 text-gray-50" />
-                    <span className="text-white font-bold text-sm">
-                      {opponent?.skillLevel || 0}
-                    </span>
-                  </div>
-                </div>
-              </div>
+              )}
             </div>
 
             {/* Center - Game Info */}
@@ -382,10 +326,11 @@ const MultiplayerTopBar = ({
         )}
       </div>
 
-      {/* Chat Widget */}
+      {/* Chat Widget Placeholder */}
       <ChatWidget 
         isOpen={chatOpen}
-        title={`${opponent?.username || 'Opponent'} Chat`}
+        chatType='room'
+        title={`${'Opponent'} Chat`}
         roomId={roomData?.roomId}
         onClose={() => setChatOpen(false)}
       />

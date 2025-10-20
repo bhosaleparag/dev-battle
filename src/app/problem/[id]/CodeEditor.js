@@ -1,7 +1,7 @@
 "use client";
 import { useState, useRef, useEffect } from 'react';
 import { Play, Send, CheckCircle, XCircle, Clock, FileText, Layers, TestTube2, GripVertical, Terminal } from 'lucide-react';
-import CodeMirror from '@uiw/react-codemirror';
+import CodeMirror, { EditorView } from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { vscodeDark } from '@uiw/codemirror-theme-vscode';
 import useAuth from '@/hooks/useAuth';
@@ -276,7 +276,15 @@ export default function CodeEditor({ data }) {
                 value={code}
                 height="100vh"
                 theme={vscodeDark}
-                extensions={[javascript({ jsx: true })]}
+                extensions={[
+                  javascript({ jsx: true }),
+                  EditorView.domEventHandlers({
+                    paste: (event) => {
+                      event.preventDefault();
+                      return true;
+                    }
+                  })
+                ]}
                 onChange={onChange}
                 className="text-md"
               />

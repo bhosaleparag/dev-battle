@@ -30,7 +30,8 @@ export const SocketProvider = ({ children }) => {
   const friendsState = useFriends(socket, isConnected, user);
   const achievementState = useAchievements(socket, isConnected, user);
 
-  useEffect(() => {
+  useEffect(() => { 
+    if (!user) return;
     const today = new Date();
     const lastLoginDate = toJavaScriptDate(user?.lastSeen || new Date(Date.now() - 86400000));
     

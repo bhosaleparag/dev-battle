@@ -535,10 +535,10 @@ export const useRooms = (socket, isConnected, user) => {
 
   // ============ ROOM ACTIONS ============
   
-  const createRoom = useCallback((roomName, roomType, maxPlayers, gameSettings) => {
+  const createRoom = useCallback((roomName, roomType, maxPlayers, gameSettings, skillLevel) => {
     if (socket && isConnected) {
       setIsLoading(true);
-      socket.emit('create-room', { roomName, roomType, maxPlayers, gameSettings });
+      socket.emit('create-room', { roomName, roomType, maxPlayers, gameSettings, skillLevel });
     }
   }, [socket, isConnected]);
 
@@ -563,9 +563,9 @@ export const useRooms = (socket, isConnected, user) => {
     }
   }, [socket, isConnected]);
 
-  const toggleReady = useCallback((roomId) => {
+  const toggleReady = useCallback((roomId, isReady) => {
     if (socket && isConnected) {
-      socket.emit('toggle-ready', { roomId });
+      socket.emit('toggle-ready', { roomId, isReady });
     }
   }, [socket, isConnected]);
 
@@ -585,7 +585,6 @@ export const useRooms = (socket, isConnected, user) => {
   
   const quickMatch = useCallback((skillLevel = 1000, gameSettings) => {
     if (socket && isConnected) {
-      console.log('skillLevel', skillLevel)
       setIsLoading(true);
       socket.emit('quick-match', { skillLevel, gameSettings });
     }
@@ -615,7 +614,6 @@ export const useRooms = (socket, isConnected, user) => {
   }, [emitGameEvent]);
 
   const solveTestCase = useCallback((roomId, points) => {
-    console.log('test-case-passed')
     emitGameEvent(roomId, 'test-case-passed', { points });
   }, [emitGameEvent]);
 
@@ -625,12 +623,10 @@ export const useRooms = (socket, isConnected, user) => {
 
   const finishGame = useCallback((roomId) => {
     setIsLoading(true);
-    console.log('game-finished')
     emitGameEvent(roomId, 'game-finished', {});
   }, [emitGameEvent]);
 
   const surrender = useCallback((roomId) => {
-    console.log('surrender', roomId)
     emitGameEvent(roomId, 'player-surrender', {});
   }, [emitGameEvent]);
 

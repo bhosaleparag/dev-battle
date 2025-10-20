@@ -12,6 +12,11 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useSound } from '@/context/SoundContext';
 import { SoundButton } from '@/components/ui/SoundButton';
+import Checkbox from '@/components/ui/Checkbox';
+import AccountManagement from '@/components/realtime/AccountManagement';
+import Typography from '@/components/ui/Typography';
+import { toast } from 'sonner';
+import { checkUsernameExists } from '@/api/actions/firebaseAuth';
 
 // Memoized Tab Button Component
 const TabButton = ({ tab, isActive, onClick }) => (
@@ -26,22 +31,6 @@ const TabButton = ({ tab, isActive, onClick }) => (
     <tab.icon size={20} className="mr-3" />
     {tab.label}
   </SoundButton>
-);
-
-// Memoized Checkbox Component
-const Checkbox = ({ checked, onChange, label, description }) => (
-  <label className="flex items-start">
-    <input
-      type="checkbox"
-      checked={checked}
-      onChange={onChange}
-      className="mr-3 w-4 h-4 mt-0.5 text-purple-60 rounded focus:ring-purple-60"
-    />
-    <div className="flex-1">
-      <span className="text-gray-50">{label}</span>
-      {description && <p className="text-gray-60 text-sm mt-1">{description}</p>}
-    </div>
-  </label>
 );
 
 // Constants
@@ -87,15 +76,25 @@ const PRIVACY_OPTIONS = [
   { value: 'private', label: 'Private - Only you can see your profile' }
 ];
 
+const validateUsername = (value) => {
+  if (!value) return '';
+  if (value.length < 3) return 'Too short (min 3 characters)';
+  if (value.length > 20) return 'Too long (max 20 characters)';
+  if (/\s/.test(value)) return 'No spaces allowed';
+  if (!/^[a-zA-Z0-9_-]+$/.test(value)) return 'Only letters, numbers, _ and - allowed';
+  if (/^[0-9]/.test(value)) return 'Cannot start with a number';
+  return '';
+};
+
 export default function AccountSettings() {
   const router = useRouter();
   const { user, setUser } = useAuth();
   const { preferences, updatePreferences, play } = useSound();
   const [activeTab, setActiveTab] = useState('profile');
   const [isPending, startTransition] = useTransition();
-  const [message, setMessage] = useState({ type: '', text: '' });
+  const [usernameError, setUsernameError] = useState('');
   const fileInputRef = useRef(null);
-  
+
   // Consolidated state objects
   const [profile, setProfile] = useState({
     username: '',
@@ -158,13 +157,6 @@ export default function AccountSettings() {
     }
   }, [user?.uid, router]);
 
-  // Show message helper
-  const showMessage = useCallback((type, text) => {
-    setMessage({ type, text });
-    const timer = setTimeout(() => setMessage({ type: '', text: '' }), 5000);
-    return () => clearTimeout(timer);
-  }, []);
-
   // Load user data
   const loadUserData = useCallback(async () => {
     if (!user || !docRef) return;
@@ -203,9 +195,9 @@ export default function AccountSettings() {
       }
     } catch (error) {
       console.error('Error loading user data:', error);
-      showMessage('error', 'Failed to load user data');
+      toast.error('Failed to load user data');
     }
-  }, [user, docRef, showMessage]);
+  }, [user, docRef]);
 
   useEffect(() => {
     loadUserData();
@@ -218,13 +210,13 @@ export default function AccountSettings() {
 
     const maxSize = 2 * 1024 * 1024;
     if (file.size > maxSize) {
-      showMessage('error', 'Image size should be less than 2MB');
+      toast.error('Image size should be less than 2MB');
       return;
     }
 
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
     if (!allowedTypes.includes(file.type)) {
-      showMessage('error', 'Only JPG, PNG images are allowed');
+      toast.error('Only JPG, PNG images are allowed');
       return;
     }
 
@@ -246,17 +238,23 @@ export default function AccountSettings() {
         await updateDoc(docRef, { avatar: url });
         
         setProfile(prev => ({ ...prev, avatar: url }));
-        showMessage('success', 'Avatar updated successfully!');
+        toast.success('Avatar updated successfully!');
       } catch (error) {
-        showMessage('error', 'Failed to upload avatar: ' + error.message);
+        toast.error('Failed to upload avatar: ' + error.message);
       }
     });
-  }, [user?.uid, docRef, showMessage]);
+  }, [user?.uid, docRef]);
 
   // Profile update handler
   const handleProfileUpdate = useCallback(async () => {
     startTransition(async () => {
       try {
+        const usernameExists = await checkUsernameExists(profile.username, user?.uid);
+        if (usernameExists) {
+          toast.warning('Username is already taken. Please choose another.');
+          return;
+        }
+
         await updateProfile(auth.currentUser, {
           displayName: profile.username,
           photoURL: profile.avatar
@@ -268,22 +266,22 @@ export default function AccountSettings() {
         });
         
         setUser(user => ({ ...user, profile }));
-        showMessage('success', 'Profile updated successfully!');
+        toast.success('Profile updated successfully!');
       } catch (error) {
-        showMessage('error', 'Failed to update profile: ' + error.message);
+        toast.error('Failed to update profile: ' + error.message);
       }
     });
-  }, [profile, docRef, setUser, showMessage]);
+  }, [profile, docRef, setUser]);
 
   // Password change handler
   const handlePasswordChange = useCallback(async () => {
     if (security.newPassword !== security.confirmPassword) {
-      showMessage('error', 'New passwords do not match');
+      toast.error('New passwords do not match');
       return;
     }
 
     if (security.newPassword.length < 6) {
-      showMessage('error', 'Password must be at least 6 characters');
+      toast.error('Password must be at least 6 characters');
       return;
     }
 
@@ -302,12 +300,12 @@ export default function AccountSettings() {
           confirmPassword: '', 
           twoFactorEnabled: false 
         });
-        showMessage('success', 'Password updated successfully!');
+        toast.success('Password updated successfully!');
       } catch (error) {
-        showMessage('error', 'Failed to update password: ' + error.message);
+        toast.error('Failed to update password: ' + error.message);
       }
     });
-  }, [security, showMessage]);
+  }, [security]);
 
   // Generic update handler for settings
   const handleSettingsUpdate = useCallback((data, field) => {
@@ -317,16 +315,16 @@ export default function AccountSettings() {
           [field]: data,
           updatedAt: new Date()
         });
-        showMessage('success', `${field.charAt(0).toUpperCase() + field.slice(1)} updated successfully!`);
+        toast.success(`${field.charAt(0).toUpperCase() + field.slice(1)} updated successfully!`);
       } catch (error) {
-        showMessage('error', `Failed to update ${field}: ` + error.message);
+        toast.error(`Failed to update ${field}: ` + error.message);
       }
     });
-  }, [docRef, showMessage]);
+  }, [docRef]);
 
   // Memoized handlers
   const handlePreferencesUpdate = useCallback(() => 
-    handleSettingsUpdate(userPreferences, 'preferences'), 
+    handleSettingsUpdate({ ...userPreferences, ...preferences }, 'preferences'), 
     [userPreferences, handleSettingsUpdate]
   );
 
@@ -405,9 +403,17 @@ export default function AccountSettings() {
           <Input
             type="text"
             value={profile.username}
-            onChange={(e) => setProfile(prev => ({ ...prev, username: e.target.value }))}
+            onChange={(e) => {
+              setUsernameError(validateUsername(e.target.value));
+              setProfile(prev => ({ ...prev, username: e.target.value }))
+            }}
             placeholder="Enter your username"
           />
+          {usernameError && (
+            <Typography variant="body" className="text-xs text-red-400">
+              {usernameError}
+            </Typography>
+          )}
         </div>
         <div>
           <label className="block text-gray-50 text-sm font-medium mb-2">Email</label>
@@ -657,18 +663,16 @@ export default function AccountSettings() {
         <h4 className="text-white font-medium mb-3">Gameplay</h4>
         <div className="space-y-2">
           <Checkbox
-            checked={preferences.autoJoinMatches}
+            checked={userPreferences.autoJoinMatches}
             onChange={(e) => {
-              updatePreferences({ autoJoinMatches: e.target.checked });
-              play('toggle');
+              setUserPreferences(prev=>({ ...prev, autoJoinMatches: e.target.checked }));
             }}
             label="Auto-join matches when available"
           />
           <Checkbox
-            checked={preferences.showOnlineStatus}
+            checked={userPreferences.showOnlineStatus}
             onChange={(e) => {
-              updatePreferences({ showOnlineStatus: e.target.checked });
-              play('toggle');
+              setUserPreferences(prev=>({ ...prev, showOnlineStatus: e.target.checked }));
             }}
             label="Show online status to friends"
           />
@@ -830,24 +834,7 @@ export default function AccountSettings() {
         </p>
       </div>
 
-      {/* Account Actions */}
-      <div className="border-t border-gray-20 pt-6">
-        <h4 className="text-white font-medium mb-3">Account Management</h4>
-        <div className="space-y-3">
-          <SoundButton className="w-full text-left px-4 py-3 bg-gray-15 border border-gray-20 rounded-lg text-gray-50 hover:bg-gray-10 transition-colors">
-            <div className="font-medium">Download My Data</div>
-            <div className="text-sm text-gray-60">Get a copy of all your data</div>
-          </SoundButton>
-          <SoundButton className="w-full text-left px-4 py-3 bg-gray-15 border border-gray-20 rounded-lg text-gray-50 hover:bg-gray-10 transition-colors">
-            <div className="font-medium">Deactivate Account</div>
-            <div className="text-sm text-gray-60">Temporarily disable your account</div>
-          </SoundButton>
-          <SoundButton className="w-full text-left px-4 py-3 bg-red-900 border border-red-700 rounded-lg text-red-300 hover:bg-red-800 transition-colors">
-            <div className="font-medium">Delete Account</div>
-            <div className="text-sm text-red-400">Permanently delete your account and all data</div>
-          </SoundButton>
-        </div>
-      </div>
+      <AccountManagement userId={user?.uid}/>
 
       <SoundButton
         onClick={handlePrivacyUpdate}
@@ -900,25 +887,6 @@ export default function AccountSettings() {
 
         {/* Main Content */}
         <div className="flex-1 flex flex-col">
-          {/* Message Bar */}
-          {message.text && (
-            <div className={`px-6 py-3 border-b border-gray-20 ${
-              message.type === 'success' ? 'bg-green-900 text-green-300 border-green-700' : 
-              message.type === 'error' ? 'bg-red-900 text-red-300 border-red-700' : 
-              'bg-blue-900 text-blue-300 border-blue-700'
-            }`}>
-              <div className="flex items-center">
-                <div className="flex-1">{message.text}</div>
-                <SoundButton 
-                  onClick={() => setMessage({ type: '', text: '' })}
-                  className="ml-4 text-current hover:opacity-75"
-                >
-                  X
-                </SoundButton>
-              </div>
-            </div>
-          )}
-
           {/* Content */}
           <div className="flex-1 overflow-y-auto p-6">
             {renderTabContent()}

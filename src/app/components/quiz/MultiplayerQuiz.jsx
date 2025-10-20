@@ -23,6 +23,7 @@ export default function MultiplayerQuiz({ quizData, roomId }) {
   const [answers, setAnswers] = useState([]);
   const [timeLeft, setTimeLeft] = useState(MAX_LIMIT_PER_QUIZ_QUE);
   const [score, setScore] = useState(0);
+  console.log('currentRoom', currentRoom)
 
   // Prepare room data for TopBar
   const roomData = {
@@ -33,7 +34,7 @@ export default function MultiplayerQuiz({ quizData, roomId }) {
       totalQuestions: quizData?.questions?.length,
       timeLimit: MAX_LIMIT_PER_QUIZ_QUE * quizData?.questions?.length
     },
-    participants: currentRoom?.participants || {},
+    participants: currentRoom?.participants || [],
     participantDetails: currentRoom?.participantDetails || [],
     currentQuestion: currentQuestion,
     startTime: currentRoom?.startTime,

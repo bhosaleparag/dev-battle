@@ -53,8 +53,7 @@ async function saveProgress(userId, challengeId, type, completed, newXP) {
         challengesCompleted: 0,
         quizzesCompleted: 0,
         debuggersCompleted: 0
-      },
-      achievements: []
+      }
     };
 
     // Get old XP for this specific challenge

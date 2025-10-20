@@ -1,7 +1,7 @@
 "use server";
 import { client } from "@/lib/sanity";
 
-export async function submitFeedback(prevState, formData) {
+export async function submitFeedback(formData) {
   try {
     const feedback = {
       _type: "feedback",

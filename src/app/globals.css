@@ -278,203 +278,139 @@ input[type="radio"]:checked {
   background-size: 40px 40px;
 }
 
- /* 1. Animated Grid with Pulse */
+/* Animated Grid with Pulse */
 .bg-animated-grid {
+  background-color: #141414;
   background-image: 
-    linear-gradient(to right, rgba(112, 59, 247, 0.1) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(112, 59, 247, 0.1) 1px, transparent 1px);
+    linear-gradient(to right, rgba(112, 59, 247, 0.3) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(112, 59, 247, 0.3) 1px, transparent 1px);
   background-size: 40px 40px;
-  /* animation: gridPulse 4s ease-in-out infinite; */
+  animation: gridPulse 4s ease-in-out infinite;
 }
 
 @keyframes gridPulse {
-  0%, 100% { 
-    background-image: 
-      linear-gradient(to right, rgba(112, 59, 247, 0.1) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(112, 59, 247, 0.1) 1px, transparent 1px);
-  }
-  50% { 
-    background-image: 
-      linear-gradient(to right, rgba(112, 59, 247, 0.3) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(112, 59, 247, 0.3) 1px, transparent 1px);
-  }
-}
-
-.bg-particles {
-  background: var(--gray-10);
-  position: relative;
-}
-
-.particle {
-  position: absolute;
-  background: var(--purple-60);
-  border-radius: 50%;
-  pointer-events: none;
-  animation: float 6s ease-in-out infinite;
-}
-
-.particle:nth-child(1) { width: 6px; height: 6px; top: 20%; left: 10%; animation-delay: 0s; }
-.particle:nth-child(2) { width: 8px; height: 8px; top: 80%; left: 20%; animation-delay: 1s; }
-.particle:nth-child(3) { width: 5px; height: 5px; top: 40%; left: 70%; animation-delay: 2s; }
-.particle:nth-child(4) { width: 7px; height: 7px; top: 60%; left: 90%; animation-delay: 3s; }
-.particle:nth-child(5) { width: 6px; height: 6px; top: 10%; left: 50%; animation-delay: 4s; }
-.particle:nth-child(6) { width: 9px; height: 9px; top: 90%; left: 60%; animation-delay: 5s; }
-.particle:nth-child(7) { width: 5px; height: 5px; top: 30%; left: 40%; animation-delay: 1.5s; }
-.particle:nth-child(8) { width: 7px; height: 7px; top: 50%; left: 85%; animation-delay: 3.5s; }
-.particle:nth-child(9) { width: 8px; height: 8px; top: 75%; left: 15%; animation-delay: 2.5s; }
-.particle:nth-child(10) { width: 6px; height: 6px; top: 5%; left: 75%; animation-delay: 4.5s; }
-
-@keyframes float {
-  0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.3; }
-  50% { transform: translateY(-20px) rotate(180deg); opacity: 0.8; }
-}
-
-/* 3. Gradient Waves */
-.bg-waves {
-  background: var(--gray-10);
-  position: relative;
-  overflow: hidden;
-}
-
-.wave {
-  position: absolute;
-  width: 200%;
-  height: 200%;
-  background: linear-gradient(45deg, 
-    transparent 30%, 
-    rgba(112, 59, 247, 0.1) 50%, 
-    transparent 70%);
-  animation: wave 8s linear infinite;
-}
-
-.wave:nth-child(2) {
-  background: linear-gradient(-45deg, 
-      transparent 30%, 
-      rgba(148, 108, 249, 0.05) 50%, 
-      transparent 70%);
-  animation-delay: -2s;
-  animation-duration: 12s;
-}
-
-@keyframes wave {
-    0% { transform: translateX(-50%) translateY(-50%) rotate(0deg); }
-    100% { transform: translateX(-50%) translateY(-50%) rotate(360deg); }
-}
-
-
-/* 5. Geometric Shapes */
-.bg-geometric {
-  background: var(--gray-10, #f0f0f0); /* Added a fallback background color */
-  position: relative;
-  overflow: hidden;
-}
-
-.shape {
-  position: absolute;
-  /* Default style is an outline */
-  border: 2px solid rgba(112, 59, 247, 0.5); 
-  animation: geometric 12s ease-in-out infinite;
-}
-
-@keyframes geometric {
   0%, 100% {
-    transform: scale(1) rotate(0deg);
-    opacity: 0.4;
+    opacity: 0.5;
   }
   50% {
-    transform: scale(1.3) rotate(180deg);
-    opacity: 0.9;
+    opacity: 1;
   }
 }
 
-/* --- Shape Definitions --- */
-
-/* 1. Circle */
-.shape:nth-child(1) {
-  width: 60px; height: 60px;
-  top: 20%; left: 15%;
-  border-radius: 50%;
-  animation-delay: 0s;
+/* Circuit Board Pattern */
+.bg-circuit-board {
+  background-color: #1A1A1A;
+  background-image: 
+    radial-gradient(circle at 20% 50%, rgba(112, 59, 247, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(130, 84, 248, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 40% 20%, rgba(148, 108, 249, 0.08) 0%, transparent 50%);
+  position: relative;
 }
 
-/* 2. Square */
-.shape:nth-child(2) {
-  width: 40px; height: 40px;
-  top: 60%; left: 70%;
-  animation-delay: 1.5s;
+.bg-circuit-board::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(90deg, rgba(112, 59, 247, 0.1) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(112, 59, 247, 0.1) 1px, transparent 1px);
+  background-size: 100px 100px;
+  mask-image: radial-gradient(circle, black 20%, transparent 80%);
+  mask-size: 200px 200px;
+  animation: circuitMove 30s linear infinite;
 }
 
-/* 3. Diamond */
-.shape:nth-child(3) {
-  width: 50px; height: 50px;
-  top: 80%; left: 20%;
-  transform: rotate(45deg);
-  animation-delay: 3s;
+@keyframes circuitMove {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 100px 100px;
+  }
 }
 
-/* 4. Triangle (using clip-path) */
-.shape:nth-child(4) {
-  width: 50px; height: 50px;
-  top: 35%; left: 50%;
-  border: none; /* Override border */
-  background: rgba(112, 59, 247, 0.5); /* Use background instead */
-  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
-  animation-delay: 4.5s;
+
+/* Code Terminal Background */
+.bg-terminal {
+  background-color: #141414;
+  background-image: 
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 20px,
+      rgba(112, 59, 247, 0.02) 20px,
+      rgba(112, 59, 247, 0.02) 21px
+    );
+  position: relative;
 }
 
-/* 5. Hexagon (using clip-path) */
-.shape:nth-child(5) {
-  width: 70px; height: 70px;
-  top: 10%; left: 80%;
-  border: none;
-  background: rgba(112, 59, 247, 0.5);
-  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
-  animation-delay: 6s;
+.bg-terminal::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: 
+    radial-gradient(circle at 10% 10%, rgba(112, 59, 247, 0.15), transparent 20%),
+    radial-gradient(circle at 90% 90%, rgba(148, 108, 249, 0.1), transparent 20%);
+  animation: terminalGlow 8s ease-in-out infinite alternate;
 }
 
-/* 6. Pentagon (using clip-path) */
-.shape:nth-child(6) {
-  width: 65px; height: 65px;
-  top: 75%; left: 45%;
-  border: none;
-  background: rgba(112, 59, 247, 0.5);
-  clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
-  animation-delay: 7.5s;
+@keyframes terminalGlow {
+  0% {
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 0.7;
+  }
 }
 
-/* 7. Large Circle */
-.shape:nth-child(7) {
-  width: 100px; height: 100px;
-  top: 50%; left: 5%;
-  border-radius: 50%;
-  animation-delay: 9s;
+/*  Neural Network Pattern */
+.bg-neural-network {
+  background-color: #141414;
+  position: relative;
 }
 
-/* 8. Small Circle */
-.shape:nth-child(8) {
-  width: 30px; height: 30px;
-  top: 25%; left: 90%;
-  border-radius: 50%;
-  animation-delay: 10.5s;
+.bg-neural-network::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    radial-gradient(circle at 20% 20%, rgba(112, 59, 247, 0.15) 0%, transparent 30%),
+    radial-gradient(circle at 80% 80%, rgba(130, 84, 248, 0.15) 0%, transparent 30%),
+    radial-gradient(circle at 50% 50%, rgba(148, 108, 249, 0.1) 0%, transparent 40%),
+    radial-gradient(circle at 90% 30%, rgba(112, 59, 247, 0.12) 0%, transparent 35%),
+    radial-gradient(circle at 30% 90%, rgba(130, 84, 248, 0.12) 0%, transparent 35%);
+  animation: neuralPulse 6s ease-in-out infinite;
 }
 
-/* 9. Small Diamond */
-.shape:nth-child(9) {
-  width: 35px; height: 35px;
-  top: 5%; left: 40%;
-  transform: rotate(45deg);
-  animation-delay: 1s;
+@keyframes neuralPulse {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
 }
 
-/* 10. Small Hexagon (using clip-path) */
-.shape:nth-child(10) {
-  width: 45px; height: 45px;
-  top: 90%; left: 85%;
-  border: none;
-  background: rgba(112, 59, 247, 0.5);
-  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
-  animation-delay: 2.5s;
-}
+
+/* ===================================
+   USAGE EXAMPLES
+   =================================== */
+
+/* Apply to your main container:
+<div className="bg-animated-grid min-h-screen">
+  <!-- Your content -->
+</div>
+
+Or combine with existing backgrounds:
+<div className="bg-gray-08 relative">
+  <div className="bg-particles absolute inset-0 pointer-events-none"></div>
+  <!-- Your content -->
+</div>
+*/
+
+
 
 /* Custom toast styles matching your design system */
 .sonner-toast {

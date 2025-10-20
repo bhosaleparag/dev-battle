@@ -2,11 +2,22 @@
 
 import { Trophy, Award, TrendingUp, RotateCcw, Home } from 'lucide-react';
 import { SoundButton } from './SoundButton';
+import { useSound } from '@/context/SoundContext';
+import { useEffect } from 'react';
 
 export default function GameResultsScreen({ gameResult, currentUserId, onPlayAgain, onExitToLobby}) {
+  const { play } = useSound();
   const myResult = gameResult?.allPlayerResults?.find(
     (result) => result.userId === currentUserId
   );
+
+  useEffect(()=>{
+    if(myResult.result === 'win'){
+      play('victory')
+    } else {
+      play('defeat')
+    }
+  },[myResult.result])
 
   return (
     <div className="min-h-screen bg-gray-10 flex items-center justify-center p-4">
