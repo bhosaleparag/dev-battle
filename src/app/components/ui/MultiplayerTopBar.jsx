@@ -58,7 +58,6 @@ const MultiplayerTopBar = ({
   };
   
   // Get all players and sort by score
-  console.log(roomData)
   const players = roomData?.participantDetails || {};
   const playersArray = Object.values(players).sort((a, b) => (b.score || 0) - (a.score || 0));
   const playerCount = playersArray.length;
