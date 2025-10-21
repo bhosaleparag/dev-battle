@@ -2,65 +2,83 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 import { auth } from "@/lib/firebase";
-import { onAuthStateChanged, signOut } from "firebase/auth";
-import usePersistedState from "@/hooks/usePersistedState";
+import { onAuthStateChanged, signOut as firebaseSignOut } from "firebase/auth";
 import { getUserProfile } from "@/api/firebase/users";
 import Loader from "@/loading";
-import { useRouter } from "next/navigation";
 
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
-  const router = useRouter();
-  const [hydrated, setHydrated] = useState(false);
-  const [user, setUser] = usePersistedState("user", null);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [authInitialized, setAuthInitialized] = useState(false);
 
   useEffect(() => {
-    setHydrated(true);
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        try {
-          // fetch user profile
-          const userData = await getUserProfile(firebaseUser.uid);
-          setUser(userData);
-
+      try {
+        if (firebaseUser) {
           const token = await firebaseUser.getIdToken();
-          await fetch("/api/auth/session", {
+          const sessionResponse = await fetch("/api/auth/session", {
             method: "POST",
             headers: {
               authorization: `Bearer ${token}`,
             },
           });
 
-          router.replace('/');
+          if (!sessionResponse.ok) {
+            throw new Error("Failed to create session");
+          }
+
+          // Fetch user profile
+          const userData = await getUserProfile(firebaseUser.uid);
+          setUser(userData);
           
-        } catch (err) {
+        } else {
+          // User logged out
           await fetch("/api/auth/session", { method: "DELETE" });
-          console.error("Error fetching user profile:", err);
           setUser(null);
         }
-      } else {
+      } catch (err) {
+        console.error("Auth error:", err);
+        
+        // Clear session on error
         await fetch("/api/auth/session", { method: "DELETE" });
         setUser(null);
+      } finally {
+        setLoading(false);
+        setAuthInitialized(true);
       }
     });
 
     return () => unsubscribe();
-  }, [setUser]);
+  }, []);
 
-  if (!hydrated) {
-    return <Loader/>
+  const signOut = async () => {
+    try {
+      setLoading(true);
+      await firebaseSignOut(auth);
+      await fetch("/api/auth/session", { method: "DELETE" });
+      setUser(null);
+    } catch (err) {
+      console.error("Sign out error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Show loader only on initial load
+  if (!authInitialized) {
+    return <Loader />;
   }
-  /// HERE fix presence 
+
   return (
     <AuthContext.Provider
       value={{
         user,
         isLoggedIn: !!user,
+        loading,
         setUser,
-        signOut: async () => {
-          await signOut(auth);
-        },
+        signOut,
       }}
     >
       {children}
@@ -68,4 +86,10 @@ export function AuthProvider({ children }) {
   );
 }
 
-export const useAuthContext = () => useContext(AuthContext);
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within AuthProvider");
+  }
+  return context;
+}
