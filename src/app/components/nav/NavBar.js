@@ -52,7 +52,7 @@ export default function NavBar() {
                 Dev Battle
               </Typography>
               <div className="text-xs text-gray-60 -mt-1">
-                Quiz • Compete • Excel
+                Code • Compete • Excel
               </div>
             </div>
           </Link>

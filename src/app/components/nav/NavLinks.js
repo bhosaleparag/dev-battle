@@ -1,16 +1,19 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ChevronDown, Menu, X } from 'lucide-react';
 import Tooltip from '../ui/Tooltip';
 import { MenuRoutes, SecondaryRoutes } from '@/lib/constants';
 import { SoundButton } from '../ui/SoundButton';
 import { useSound } from '@/context/SoundContext';
+import useAuth from '@/hooks/useAuth';
 
 export default function NavLinks() {
   const { play } = useSound();
+  const { isLoggedIn } = useAuth();
+  const router = useRouter();
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showMore, setShowMore] = useState(false);
@@ -39,6 +42,26 @@ export default function NavLinks() {
     return pathname.startsWith(href);
   };
 
+  const isProtectedRoute = (href) => {
+    const publicRoutes = ['/', '/login', '/register', '/forgot-password'];
+    return !publicRoutes.includes(href);
+  };
+
+  // ADD THIS FUNCTION - Handle navigation with auth check
+  const handleNavigation = (e, route, isMobile) => {
+    e.preventDefault();
+    play('swipe');
+    
+    // Check if route is protected and user is not logged in
+    if (isProtectedRoute(route.href) && !isLoggedIn) {
+      router.push('/login');
+      return;
+    }
+
+    if (isMobile) setIsMobileMenuOpen(false);
+    router.push(route.href);
+  };
+
   const renderNavLink = (route, isMobile = false) => {
     const active = isActive(route.href);
     
@@ -55,10 +78,7 @@ export default function NavLinks() {
             ? "bg-gradient-to-r from-purple-60/20 to-purple-70/20 border-purple-60/50 shadow-lg shadow-purple-60/20" 
             : "border-transparent hover:border-gray-20 hover:bg-gray-15/50"}
         `}
-        onClick={() => {
-          play('swipe')
-          if(isMobile) setIsMobileMenuOpen(false);
-        }}
+        onClick={(e) => handleNavigation(e, route, isMobile)}
       >
         {/* Background glow effect for active state */}
         {active && (

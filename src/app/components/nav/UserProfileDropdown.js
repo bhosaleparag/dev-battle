@@ -210,15 +210,3 @@ export default function UserProfileDropdown({ user, signOut, onOpenSettings, onO
     </div>
   );
 }
-
-
-/* Usage Examples:
-
-<UserProfileDropdown 
-  user={user}
-  signOut={signOut}
-  onOpenSettings={() => setShowSettings(true)}
-  onOpenProfile={() => setShowProfile(true)}
-  userStats={user?.stats}
-/>
-*/
