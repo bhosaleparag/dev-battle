@@ -125,15 +125,15 @@ export default function AccountSettings() {
     showOnlineStatus: true
   });
   
-  // const [notifications, setNotifications] = useState({
-  //   emailNotifications: true,
-  //   pushNotifications: true,
-  //   friendRequests: true,
-  //   gameInvites: true,
-  //   achievements: true,
-  //   weeklyDigest: true,
-  //   marketing: false
-  // });
+  const [notifications, setNotifications] = useState({
+    emailNotifications: true,
+    pushNotifications: true,
+    friendRequests: true,
+    gameInvites: true,
+    achievements: true,
+    weeklyDigest: true,
+    marketing: false
+  });
   
   const [privacy, setPrivacy] = useState({
     profileVisibility: 'public',
@@ -852,7 +852,8 @@ export default function AccountSettings() {
       case 'profile': return ProfileTab;
       case 'security': return SecurityTab;
       case 'preferences': return PreferencesTab;
-      // case 'notifications': return NotificationsTab;
+      // case 'notifications
+      // ': return NotificationsTab;
       case 'privacy': return PrivacyTab;
       default: return null;
     }
