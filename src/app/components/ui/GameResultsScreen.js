@@ -152,8 +152,7 @@ export default function GameResultsScreen({ gameResult, currentUserId, onPlayAga
                         )}
                       </div>
                       <div className="text-sm text-gray-60 mt-1">
-                        Rank #{player.rank} of {gameResult.finalScores.length} •
-                        XP Gain: {player.skillLevel || 0}
+                        Rank #{player.rank} of {gameResult.finalScores.length}
                       </div>
                     </div>
                   </div>

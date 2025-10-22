@@ -6,9 +6,10 @@ import { useSocketContext } from '@/context/SocketProvider';
 import DashboardCard from './DashboardCard';
 import { AchievementIcons } from '@/lib/constants';
 import FriendBar from '../ui/FriendBar';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import SentInvitesList from '../FriendMatch/SentInvitesList';
 import CreateRoomModal from '@/battles/ChallengeSelector';
+import { calculateLevel } from '@/utils/calculateLevel';
 
 export default function SignedInDashboard({ user }) {
   const { friendsState, leaderboardState, achievementState, roomsState } = useSocketContext();
@@ -20,6 +21,7 @@ export default function SignedInDashboard({ user }) {
   const [selectedFriend, setSelectedFriend] = useState(null);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const router = useRouter();
+  const userStat = calculateLevel(user?.stats?.xp)
 
   const handleInviteFriend = (friend) => {
     setSelectedFriend(friend);
@@ -39,23 +41,23 @@ export default function SignedInDashboard({ user }) {
     return sentInvites.some(inv => inv.receiverId === friendId);
   };
  
-  // useEffect(() => {
-  //   async function fetchDailyQuiz() {
-  //     try {
-  //       const response = await fetch(`/api/daily-quiz?userId=${user?.uid}`);
-  //       if (!response.ok) {
-  //         throw new Error('Failed to fetch daily quiz');
-  //       }
+  useEffect(() => {
+    async function fetchDailyQuiz() {
+      try {
+        const response = await fetch(`/api/daily-quiz?userId=${user?.uid}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch daily quiz');
+        }
         
-  //       const data = await response.json();
-  //       setQuiz(data);
-  //     } catch (err) {
-  //       console.error(err.message);
-  //     }
-  //   }
+        const data = await response.json();
+        setQuiz(data);
+      } catch (err) {
+        console.error(err.message);
+      }
+    }
 
-  //   fetchDailyQuiz();
-  // }, []);
+    fetchDailyQuiz();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-08 text-white-99">
@@ -81,15 +83,53 @@ export default function SignedInDashboard({ user }) {
         )}
         {/* Welcome Header */}
         <div className="mb-6 sm:mb-8">
-          <h1 className="text-3xl sm:text-4xl font-bold mb-2 text-white-99">Welcome back, {user?.username}! 👋</h1>
-          <div className="flex flex-wrap gap-4 sm:gap-6 text-sm sm:text-base">
-            <div className="flex items-center gap-2">
-              <Zap className="w-5 h-5 text-purple-75" />
-              <span className="text-gray-60">XP: <span className="text-white-99 font-semibold">{user?.stats?.xp}</span></span>
+          <h1 className="text-3xl sm:text-4xl font-bold mb-3 text-white-99">
+            Welcome back, {user?.username}! 👋
+          </h1>
+          
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+            {/* Level Badge */}
+            <div className="flex items-center gap-3 px-4 py-2.5 bg-gradient-to-br from-purple-500/20 to-purple-600/20 border border-purple-500/30 rounded-xl w-fit">
+              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-purple-500/20 border border-purple-500/40">
+                <span className="text-lg font-bold text-purple-400">L{userStat?.level}</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xs text-gray-60">Level {userStat?.level}</span>
+                <span className="text-sm font-semibold text-white-99">{userStat?.xpToNextLevel} XP to next</span>
+              </div>
             </div>
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-br from-gray-08 to-gray-10 border border-gray-15 rounded-lg">
-              <Flame className="w-4 h-4 text-orange-500" />
-              <span className="text-sm font-semibold text-white-99">{user?.stats?.streak} day streak</span>
+
+            {/* Stats Row */}
+            <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+              {/* XP Display */}
+              <div className="flex items-center gap-2 px-3 py-2 bg-gradient-to-br from-gray-08 to-gray-10 border border-gray-15 rounded-lg">
+                <Zap className="w-4 h-4 text-purple-75" />
+                <span className="text-sm text-gray-60">
+                  <span className="text-white-99 font-semibold">{user?.stats?.xp}</span> XP
+                </span>
+              </div>
+
+              {/* Streak Display */}
+              <div className="flex items-center gap-2 px-3 py-2 bg-gradient-to-br from-orange-500/10 to-red-500/10 border border-orange-500/30 rounded-lg">
+                <Flame className="w-4 h-4 text-orange-500" />
+                <span className="text-sm font-semibold text-white-99">
+                  {user?.stats?.streak} streak{user?.stats?.streak !== 1 ? 's' : ''}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Progress Bar */}
+          <div className="mt-3 sm:mt-4">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-xs text-gray-60">Progress to Level {userStat?.level + 1}</span>
+              <span className="text-xs text-gray-60">{userStat?.progressPercentage}%</span>
+            </div>
+            <div className="w-full h-2 bg-gray-15 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-gradient-to-r from-purple-500 to-purple-600 rounded-full transition-all duration-500 ease-out"
+                style={{ width: `${userStat?.progressPercentage}%` }}
+              />
             </div>
           </div>
         </div>

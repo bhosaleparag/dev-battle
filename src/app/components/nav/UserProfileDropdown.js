@@ -65,12 +65,12 @@ export default function UserProfileDropdown({ user, signOut, onOpenSettings, onO
       action: () => router.push('/friends'),
       description: 'Manage your friend list'
     },
-    {
-      icon: Bell,
-      label: 'Notifications',
-      action: () => router.push('/notifications'),
-      description: 'View recent activity'
-    },
+    // {
+    //   icon: Bell,
+    //   label: 'Notifications',
+    //   action: () => router.push('/notifications'),
+    //   description: 'View recent activity'
+    // },
     {
       icon: HelpCircle,
       label: 'Help & Support',
