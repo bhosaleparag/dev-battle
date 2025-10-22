@@ -5,6 +5,7 @@ import { NextResponse } from "next/server";
 
 // Revalidate daily quiz every 2 hours (7200 seconds)
 export const revalidate = 7200;
+export const dynamic = 'force-dynamic';
 
 export async function GET(req) {
   try {
