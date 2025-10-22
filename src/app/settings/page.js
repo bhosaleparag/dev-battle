@@ -38,7 +38,7 @@ const TABS = [
   { id: 'profile', label: 'Profile', icon: User },
   { id: 'security', label: 'Security', icon: Lock },
   { id: 'preferences', label: 'Preferences', icon: Palette },
-  { id: 'notifications', label: 'Notifications', icon: Bell },
+  // { id: 'notifications', label: 'Notifications', icon: Bell },
   { id: 'privacy', label: 'Privacy', icon: Shield },
 ];
 
@@ -125,15 +125,15 @@ export default function AccountSettings() {
     showOnlineStatus: true
   });
   
-  const [notifications, setNotifications] = useState({
-    emailNotifications: true,
-    pushNotifications: true,
-    friendRequests: true,
-    gameInvites: true,
-    achievements: true,
-    weeklyDigest: true,
-    marketing: false
-  });
+  // const [notifications, setNotifications] = useState({
+  //   emailNotifications: true,
+  //   pushNotifications: true,
+  //   friendRequests: true,
+  //   gameInvites: true,
+  //   achievements: true,
+  //   weeklyDigest: true,
+  //   marketing: false
+  // });
   
   const [privacy, setPrivacy] = useState({
     profileVisibility: 'public',
@@ -185,9 +185,9 @@ export default function AccountSettings() {
           setUserPreferences(prev => ({ ...prev, ...userData.preferences }));
         }
         
-        if (userData.notifications) {
-          setNotifications(prev => ({ ...prev, ...userData.notifications }));
-        }
+        // if (userData.notifications) {
+        //   setNotifications(prev => ({ ...prev, ...userData.notifications }));
+        // }
         
         if (userData.privacy) {
           setPrivacy(prev => ({ ...prev, ...userData.privacy }));
@@ -698,77 +698,77 @@ export default function AccountSettings() {
   ), [preferences, userPreferences, isPending, handlePreferencesUpdate]);
 
   // Notifications Tab Content
-  const NotificationsTab = useMemo(() => (
-    <div className="space-y-6">
-      <h3 className="text-xl font-semibold text-white mb-4">Notification Settings</h3>
+  // const NotificationsTab = useMemo(() => (
+  //   <div className="space-y-6">
+  //     <h3 className="text-xl font-semibold text-white mb-4">Notification Settings</h3>
       
-      <div>
-        <h4 className="text-white font-medium mb-3">General</h4>
-        <div className="space-y-2">
-          <Checkbox
-            checked={notifications.emailNotifications}
-            onChange={(e) => setNotifications(prev => ({ ...prev, emailNotifications: e.target.checked }))}
-            label="Email notifications"
-          />
-          <Checkbox
-            checked={notifications.pushNotifications}
-            onChange={(e) => setNotifications(prev => ({ ...prev, pushNotifications: e.target.checked }))}
-            label="Push notifications"
-          />
-        </div>
-      </div>
+  //     <div>
+  //       <h4 className="text-white font-medium mb-3">General</h4>
+  //       <div className="space-y-2">
+  //         <Checkbox
+  //           checked={notifications.emailNotifications}
+  //           onChange={(e) => setNotifications(prev => ({ ...prev, emailNotifications: e.target.checked }))}
+  //           label="Email notifications"
+  //         />
+  //         <Checkbox
+  //           checked={notifications.pushNotifications}
+  //           onChange={(e) => setNotifications(prev => ({ ...prev, pushNotifications: e.target.checked }))}
+  //           label="Push notifications"
+  //         />
+  //       </div>
+  //     </div>
 
-      <div>
-        <h4 className="text-white font-medium mb-3">Social</h4>
-        <div className="space-y-2">
-          <Checkbox
-            checked={notifications.friendRequests}
-            onChange={(e) => setNotifications(prev => ({ ...prev, friendRequests: e.target.checked }))}
-            label="Friend requests"
-          />
-          <Checkbox
-            checked={notifications.gameInvites}
-            onChange={(e) => setNotifications(prev => ({ ...prev, gameInvites: e.target.checked }))}
-            label="Game invites"
-          />
-        </div>
-      </div>
+  //     <div>
+  //       <h4 className="text-white font-medium mb-3">Social</h4>
+  //       <div className="space-y-2">
+  //         <Checkbox
+  //           checked={notifications.friendRequests}
+  //           onChange={(e) => setNotifications(prev => ({ ...prev, friendRequests: e.target.checked }))}
+  //           label="Friend requests"
+  //         />
+  //         <Checkbox
+  //           checked={notifications.gameInvites}
+  //           onChange={(e) => setNotifications(prev => ({ ...prev, gameInvites: e.target.checked }))}
+  //           label="Game invites"
+  //         />
+  //       </div>
+  //     </div>
 
-      <div>
-        <h4 className="text-white font-medium mb-3">Game Updates</h4>
-        <div className="space-y-2">
-          <Checkbox
-            checked={notifications.achievements}
-            onChange={(e) => setNotifications(prev => ({ ...prev, achievements: e.target.checked }))}
-            label="Achievement unlocks"
-          />
-          <Checkbox
-            checked={notifications.weeklyDigest}
-            onChange={(e) => setNotifications(prev => ({ ...prev, weeklyDigest: e.target.checked }))}
-            label="Weekly performance digest"
-          />
-        </div>
-      </div>
+  //     <div>
+  //       <h4 className="text-white font-medium mb-3">Game Updates</h4>
+  //       <div className="space-y-2">
+  //         <Checkbox
+  //           checked={notifications.achievements}
+  //           onChange={(e) => setNotifications(prev => ({ ...prev, achievements: e.target.checked }))}
+  //           label="Achievement unlocks"
+  //         />
+  //         <Checkbox
+  //           checked={notifications.weeklyDigest}
+  //           onChange={(e) => setNotifications(prev => ({ ...prev, weeklyDigest: e.target.checked }))}
+  //           label="Weekly performance digest"
+  //         />
+  //       </div>
+  //     </div>
 
-      <div>
-        <h4 className="text-white font-medium mb-3">Marketing</h4>
-        <Checkbox
-          checked={notifications.marketing}
-          onChange={(e) => setNotifications(prev => ({ ...prev, marketing: e.target.checked }))}
-          label="Promotional emails and updates"
-          description="Receive news about new features and special events"
-        />
-      </div>
+  //     <div>
+  //       <h4 className="text-white font-medium mb-3">Marketing</h4>
+  //       <Checkbox
+  //         checked={notifications.marketing}
+  //         onChange={(e) => setNotifications(prev => ({ ...prev, marketing: e.target.checked }))}
+  //         label="Promotional emails and updates"
+  //         description="Receive news about new features and special events"
+  //       />
+  //     </div>
 
-      <SoundButton
-        onClick={handleNotificationsUpdate}
-        disabled={isPending}
-        className="bg-purple-60 text-white px-6 py-2 rounded-lg hover:bg-purple-65 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-      >
-        {isPending ? 'Updating...' : 'Save Notification Settings'}
-      </SoundButton>
-    </div>
-  ), [notifications, isPending, handleNotificationsUpdate]);
+  //     <SoundButton
+  //       onClick={handleNotificationsUpdate}
+  //       disabled={isPending}
+  //       className="bg-purple-60 text-white px-6 py-2 rounded-lg hover:bg-purple-65 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+  //     >
+  //       {isPending ? 'Updating...' : 'Save Notification Settings'}
+  //     </SoundButton>
+  //   </div>
+  // ), [notifications, isPending, handleNotificationsUpdate]);
 
   // Privacy Tab Content
   const PrivacyTab = useMemo(() => (
@@ -852,7 +852,7 @@ export default function AccountSettings() {
       case 'profile': return ProfileTab;
       case 'security': return SecurityTab;
       case 'preferences': return PreferencesTab;
-      case 'notifications': return NotificationsTab;
+      // case 'notifications': return NotificationsTab;
       case 'privacy': return PrivacyTab;
       default: return null;
     }
