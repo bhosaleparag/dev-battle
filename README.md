@@ -79,7 +79,7 @@ A real-time multiplayer coding platform where developers can challenge each othe
 1. **Clone the repository**
    ```bash
    git clone <repository-url>
-   cd practice-next
+   cd dev-battle
    ```
 
 2. **Install dependencies**
