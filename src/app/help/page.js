@@ -1,164 +1,246 @@
 "use client";
-import React, { useState } from 'react';
-import { HelpCircle, MessageSquare, Bug, Mail, ChevronRight, Phone, Send, X } from 'lucide-react';
-import { FAQS } from '@/lib/constants';
-import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Dialog';
-import { useRouter } from 'next/navigation';
-import { SoundButton } from '@/components/ui/SoundButton';
+import React, { useState, useMemo } from 'react';
+import { HelpCircle, Mail, ChevronRight, Phone, X, Search, Zap, Shield } from 'lucide-react';
+import { FAQS, HelpCategories, supportSections } from '@/lib/constants';
 
 const HelpSupport = () => {
-  const router = useRouter();
   const [selectedFAQ, setSelectedFAQ] = useState(null);
   const [contactModal, setContactModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
 
-  const supportSections = [
-    {
-      id: 'faqs',
-      title: 'Frequently Asked Questions',
-      description: 'Find quick answers to common questions',
-      icon: HelpCircle,
-      action: () => document.getElementById('faq-section').scrollIntoView({ behavior: 'smooth' })
-    },
-    {
-      id: 'contact',
-      title: 'Contact Support',
-      description: 'Get help from our support team',
-      icon: MessageSquare,
-      action: () => setContactModal(true)
-    },
-    {
-      id: 'bug',
-      title: 'Report a Bug',
-      description: 'Help us improve by reporting issues',
-      icon: Bug,
-      action: () => router.push('/feedback')
-    },
-    {
-      id: 'feedback',
-      title: 'Send Feedback',
-      description: 'Share your thoughts and suggestions',
-      icon: Mail,
-      action: () => router.push('/feedback')
+  const filteredFAQs = useMemo(() => {
+    let filtered = FAQS;
+    
+    if (selectedCategory !== 'all') {
+      filtered = filtered.filter(faq => faq.category === selectedCategory);
     }
-  ];
+    
+    if (searchQuery.trim()) {
+      filtered = filtered.filter(faq => 
+        faq.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        faq.answer.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+    
+    return filtered;
+  }, [selectedCategory, searchQuery]);
 
   const ContactModal = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-gray-08 border border-gray-15 rounded-lg max-w-md w-full p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-xl font-semibold text-white">Contact Support</h3>
-          <SoundButton 
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn">
+      <div className="bg-gray-10 border border-gray-15 rounded-2xl max-w-md w-full p-6 shadow-2xl animate-slideUp">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-2xl font-bold text-white-99">Contact Support</h3>
+          <button 
             onClick={() => setContactModal(false)}
-            className="text-gray-400 hover:text-white transition-colors"
+            className="text-gray-40 hover:text-white-99 transition-colors p-2 hover:bg-gray-15 rounded-lg"
           >
             <X size={24} />
-          </SoundButton>
+          </button>
         </div>
         
-        <div className="space-y-4">
-          <div className="flex items-center p-4 bg-gray-08 rounded-lg border border-gray-15 hover:border-gray-30 transition-colors cursor-pointer">
-            <Mail className="text-purple-400 mr-3" size={20} />
-            <div>
-              <h4 className="text-white font-medium">Email Support</h4>
-              <p className="text-gray-300 text-sm">paragbhosale06@gmail.com</p>
-              <p className="text-gray-400 text-xs">Response within 24 hours</p>
+        <div className="space-y-3">
+          <a 
+            href="mailto:paragbhosale06@gmail.com"
+            className="flex items-start p-4 bg-gray-08 rounded-xl border border-gray-15 hover:border-purple-60 transition-all cursor-pointer group"
+          >
+            <div className="bg-purple-60/10 p-3 rounded-lg group-hover:bg-purple-60/20 transition-colors">
+              <Mail className="text-purple-60" size={24} />
             </div>
-          </div>
+            <div className="ml-4 flex-1">
+              <h4 className="text-white-99 font-semibold mb-1">Email Support</h4>
+              <p className="text-gray-60 text-sm mb-1">paragbhosale06@gmail.com</p>
+              <p className="text-gray-50 text-xs flex items-center gap-1">
+                <Zap size={12} className="text-purple-60" />
+                Response within 24 hours
+              </p>
+            </div>
+          </a>
           
-          <div className="flex items-center p-4 bg-gray-08 rounded-lg border border-gray-15 hover:border-gray-30 transition-colors cursor-pointer">
-            <Phone className="text-purple-400 mr-3" size={20} />
-            <div>
-              <h4 className="text-white font-medium">Phone Support</h4>
-              <p className="text-gray-300 text-sm">+91 9356289160</p>
-              <p className="text-gray-400 text-xs">Available 24 hours</p>
+          <a 
+            href="tel:+919356289160"
+            className="flex items-start p-4 bg-gray-08 rounded-xl border border-gray-15 hover:border-purple-60 transition-all cursor-pointer group"
+          >
+            <div className="bg-purple-60/10 p-3 rounded-lg group-hover:bg-purple-60/20 transition-colors">
+              <Phone className="text-purple-60" size={24} />
             </div>
-          </div>
+            <div className="ml-4 flex-1">
+              <h4 className="text-white-99 font-semibold mb-1">Phone Support</h4>
+              <p className="text-gray-60 text-sm mb-1">+91 9356289160</p>
+              <p className="text-gray-50 text-xs flex items-center gap-1">
+                <Shield size={12} className="text-green-500" />
+                Available 24/7
+              </p>
+            </div>
+          </a>
+        </div>
+
+        <div className="mt-6 p-4 bg-purple-60/5 border border-purple-60/20 rounded-xl">
+          <p className="text-gray-60 text-sm text-center">
+            Our support team typically responds within 2-4 hours during business hours
+          </p>
         </div>
       </div>
     </div>
   );
 
   return (
-    <div className="p-6">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-3">Help & Support</h1>
-          <p className="text-gray-300 text-lg">Get the help you need to make the most of your experience</p>
+    <div className="min-h-screen bg-gray-08 text-white-99">
+      <div className="max-w-6xl mx-auto p-6">
+        {/* Header Section */}
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-purple-60/10 rounded-2xl mb-6">
+            <HelpCircle className="text-purple-60" size={40} />
+          </div>
+          <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-white-99 to-gray-60 bg-clip-text text-transparent">
+            Help & Support Center
+          </h1>
+          <p className="text-gray-60 text-lg max-w-2xl mx-auto">
+            Get answers to your questions and learn how to make the most of your coding journey
+          </p>
         </div>
 
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+        {/* Search Bar */}
+        <div className="mb-8">
+          <div className="relative max-w-2xl mx-auto">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-50" size={20} />
+            <input
+              type="text"
+              placeholder="Search for help..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-12 pr-4 py-4 bg-gray-10 border border-gray-15 rounded-xl text-white-99 placeholder-gray-50 focus:outline-none focus:border-purple-60 transition-colors"
+            />
+          </div>
+        </div>
+
+        {/* Quick Support Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
           {supportSections.map((section) => {
             const IconComponent = section.icon;
             return (
-              <div
+              <button
                 key={section.id}
                 onClick={section.action}
-                className="bg-gray-08 border border-gray-15 rounded-xl p-6 cursor-pointer hover:border-gray-30 transition-all duration-200 hover:shadow-lg hover:shadow-gray-30/10 group"
+                className="bg-gray-10 border border-gray-15 rounded-xl p-6 cursor-pointer hover:border-purple-60 transition-all duration-200 hover:shadow-lg hover:shadow-purple-60/10 group text-left"
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-start gap-4">
-                    <div className="bg-gray-15 p-3 rounded-lg group-hover:bg-purple-600 transition-colors">
-                      <IconComponent size={28} className="text-purple-400 group-hover:text-white" />
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-semibold mb-2">{section.title}</h3>
-                      <p className="text-gray-300">{section.description}</p>
-                    </div>
-                  </div>
-                  <ChevronRight size={24} className="text-gray-500 group-hover:text-purple-400 transition-colors" />
+                <div className="bg-purple-60/10 w-12 h-12 rounded-lg flex items-center justify-center mb-4 group-hover:bg-purple-60 transition-colors">
+                  <IconComponent size={24} className="text-purple-60 group-hover:text-white-99 transition-colors" />
                 </div>
-              </div>
+                <h3 className="text-lg font-semibold mb-2 text-white-99">{section.title}</h3>
+                <p className="text-gray-60 text-sm">{section.description}</p>
+              </button>
             );
           })}
         </div>
 
         {/* FAQ Section */}
-        <div id="faq-section" className="bg-gray-08 border border-gray-15 rounded-xl p-8">
-          <h2 className="text-3xl font-semibold mb-8 flex items-center gap-3">
-            <HelpCircle className="text-purple-400" size={32} />
-            Frequently Asked Questions
-          </h2>
+        <div className="bg-gray-10 border border-gray-15 rounded-2xl p-8 mb-8">
+          <h2 className="text-3xl font-bold mb-6 text-white-99">Frequently Asked Questions</h2>
           
-          <div className="space-y-4">
-            {FAQS.map((faq) => (
-              <div key={faq.id} className="border border-gray-15 rounded-lg overflow-hidden">
-                <SoundButton
-                  onClick={() => setSelectedFAQ(selectedFAQ === faq.id ? null : faq.id)}
-                  className="w-full text-left p-5 bg-gray-15 hover:bg-gray-600 transition-colors flex items-center justify-between"
+          {/* Category Filters */}
+          <div className="flex flex-wrap gap-3 mb-8">
+            {HelpCategories.map((category) => {
+              const IconComponent = category.icon;
+              return (
+                <button
+                  key={category.id}
+                  onClick={() => setSelectedCategory(category.id)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
+                    selectedCategory === category.id
+                      ? 'bg-purple-60 text-white-99 shadow-lg shadow-purple-60/20'
+                      : 'bg-gray-08 text-gray-60 hover:text-white-99 border border-gray-15 hover:border-gray-20'
+                  }`}
                 >
-                  <span className="font-medium text-lg">{faq.question}</span>
-                  <ChevronRight 
-                    size={24} 
-                    className={`text-gray-400 transition-transform ${selectedFAQ === faq.id ? 'rotate-90' : ''}`} 
-                  />
-                </SoundButton>
-                {selectedFAQ === faq.id && (
-                  <div className="p-5 bg-gray-08 border-t border-gray-600">
-                    <p className="text-gray-300 leading-relaxed">{faq.answer}</p>
-                  </div>
-                )}
+                  <IconComponent size={18} />
+                  {category.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* FAQ List */}
+          <div className="space-y-3">
+            {filteredFAQs.length > 0 ? (
+              filteredFAQs.map((faq) => (
+                <div key={faq.id} className="border border-gray-15 rounded-xl overflow-hidden bg-gray-08">
+                  <button
+                    onClick={() => setSelectedFAQ(selectedFAQ === faq.id ? null : faq.id)}
+                    className="w-full text-left p-5 hover:bg-gray-15 transition-colors flex items-center justify-between"
+                  >
+                    <span className="font-semibold text-lg text-white-99 pr-4">{faq.question}</span>
+                    <ChevronRight 
+                      size={24} 
+                      className={`text-gray-50 transition-transform flex-shrink-0 ${
+                        selectedFAQ === faq.id ? 'rotate-90 text-purple-60' : ''
+                      }`} 
+                    />
+                  </button>
+                  {selectedFAQ === faq.id && (
+                    <div className="px-5 pb-5 border-t border-gray-15">
+                      <p className="text-gray-60 leading-relaxed pt-4">{faq.answer}</p>
+                    </div>
+                  )}
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-12">
+                <Search className="mx-auto mb-4 text-gray-50" size={48} />
+                <p className="text-gray-60 text-lg">No questions found matching your search.</p>
+                <button
+                  onClick={() => {
+                    setSearchQuery('');
+                    setSelectedCategory('all');
+                  }}
+                  className="mt-4 px-6 py-2 bg-purple-60 text-white-99 rounded-lg hover:bg-purple-70 transition-colors"
+                >
+                  Clear Filters
+                </button>
               </div>
-            ))}
+            )}
           </div>
         </div>
 
-        {/* Contact Info */}
-        <div className="mt-12 text-center">
-          <p className="text-gray-300 mb-4 text-lg">Still need help?</p>
-          <Button 
+        {/* Still Need Help Section */}
+        <div className="bg-gradient-to-r from-purple-60/10 to-purple-70/10 border border-purple-60/20 rounded-2xl p-8 text-center">
+          <h3 className="text-2xl font-bold mb-3 text-white-99">Still need help?</h3>
+          <p className="text-gray-60 mb-6 max-w-xl mx-auto">
+            Our support team is available 24/7 to assist you with any questions or issues
+          </p>
+          <button 
             onClick={() => setContactModal(true)}
-            className="text-white px-8 py-3 text-lg font-medium"
+            className="px-8 py-3 bg-purple-60 text-white-99 rounded-xl font-semibold hover:bg-purple-70 transition-colors shadow-lg shadow-purple-60/20"
           >
-            Contact Support
-          </Button>
+            Contact Support Team
+          </button>
         </div>
       </div>
 
-      {/* Modals */}
+      {/* Contact Modal */}
       {contactModal && <ContactModal />}
+
+      <style jsx>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes slideUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-fadeIn {
+          animation: fadeIn 0.2s ease-out;
+        }
+        .animate-slideUp {
+          animation: slideUp 0.3s ease-out;
+        }
+      `}</style>
     </div>
   );
 };

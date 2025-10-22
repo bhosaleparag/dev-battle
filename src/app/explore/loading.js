@@ -133,8 +133,8 @@ const CodingChallengesAppSkeleton = () => {
       <div className="max-w-7xl mx-auto mb-12">
         {/* Hero Section Skeleton */}
         <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold text-white mb-4 bg-gradient-to-r from-purple-75 to-purple-60 bg-clip-text text-transparent">
-            Daily Code Challenges
+          <h1 className="text-5xl font-bold text-white mb-4 bg-gradient-to-r from-purple-75 to-purple-60 bg-clip-text">
+            Code Challenges
           </h1>
           <p className="text-xl text-gray-50 max-w-2xl mx-auto">
             Sharpen your coding skills with our curated collection of daily challenges, debugging exercises, and algorithmic problems.

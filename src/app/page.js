@@ -1,16 +1,19 @@
 "use client";
-import useAuth from "@/hooks/useAuth";
-import SignUsers from "./components/dashboard/SignUsers";
-import NonSignUser from "./components/dashboard/NonSignUser";
+import NonSignUser from './components/dashboard/NonSignUser';
+import SignedInDashboard from './components/dashboard/SignUsers';
+import useAuth from './hooks/useAuth';
 
-function Dashboard() {
-  const { isLoggedIn } = useAuth();
-  if(isLoggedIn){
-    return <SignUsers/>
-  }
+export default function HomePage() {
+  const { isLoggedIn, user } = useAuth();  
+
+  // Logged In Dashboard View
   return (
-    <NonSignUser/>
-  )
+    <>
+    {isLoggedIn ? (
+      <SignedInDashboard user={user} />
+    ):(
+      <NonSignUser/>
+    )}
+    </>
+  );
 }
-
-export default Dashboard

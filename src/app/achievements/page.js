@@ -10,29 +10,15 @@ import { useEffect, useState } from "react";
 // Main Achievement Dashboard
 function AchievementDashboard() {
   const { isConnected, achievementState } = useSocketContext();
-  const { achievements, myAchievements, getAchievements, getMyAchievements } = achievementState
+  const { myAchievements, achievementStats, getMyAchievements } = achievementState
   const [selectedCategory, setSelectedCategory] = useState('all');
   
   const categories = ['all', 'consistency', 'performance', 'social', 'progression', 'mastery']; // 'streak', 'coding', 'special'
 
-  const filteredAchievements = selectedCategory === 'all'
-    ? achievements
-    : achievements.filter(a => a.category === selectedCategory);
-
-    const stats = {
-    unlocked: myAchievements.filter(ua => ua.unlockedAt).length,
-    total: achievements.length,
-    totalPoints: myAchievements
-      .filter(ua => ua.unlockedAt)
-      .reduce((sum, ua) => {
-        const achievement = achievements.find(a => a.achievementId === ua.achievementId);
-        return sum + (achievement?.points || 0);
-      }, 0)
-  };
+  const filteredAchievements = selectedCategory === "all" ? myAchievements : myAchievements.filter((a) => a.achievement?.category === selectedCategory);
 
   useEffect(()=>{
     getMyAchievements();
-    getAchievements();
   },[isConnected])
 
   return (
@@ -48,7 +34,7 @@ function AchievementDashboard() {
         </div>
 
         {/* Stats */}
-        <AchievementStats stats={stats} />
+        <AchievementStats stats={achievementStats} />
 
         {/* Category Filter */}
         <div className="flex gap-2 overflow-x-auto pb-2">
@@ -71,22 +57,15 @@ function AchievementDashboard() {
 
         {/* Achievement Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredAchievements.map(achievement => {
-            const userAchievement = myAchievements.find(
-              ua => ua.achievementId === achievement.achievementId
-            );
-            return (
-              <AchievementCard
-                key={achievement.achievementId}
-                achievement={{
-                  ...achievement,
-                  unlockedAt: userAchievement?.unlockedAt
-                }}
-                unlocked={!!userAchievement?.unlockedAt}
-                progress={userAchievement?.progress || 0}
-              />
-            );
-          })}
+          {filteredAchievements.map((a) => (
+            <AchievementCard
+              key={a.achievementId}
+              achievement={a.achievement}
+              unlocked={!!a.unlockedAt}
+              unlockedAt={a.unlockedAt}
+              progress={a.progress || 0}
+            />
+          ))}
         </div>
       </div>
     </div>

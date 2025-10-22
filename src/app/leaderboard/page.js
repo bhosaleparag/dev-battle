@@ -41,7 +41,7 @@ const Leaderboard = () => {
     ...myPosition,
     rank: myPosition.position,
     userId: user?.uid,
-    username: user?.displayName || user?.email?.split('@')[0],
+    username: user?.userName || user?.displayName || user?.email?.split('@')[0],
     displayScore: myPosition.totalScore,
     wins: user?.stats?.battlesWon || 0,
     losses: myPosition.gamesPlayed - (user?.stats?.battlesWon || 0),

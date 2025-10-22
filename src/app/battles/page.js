@@ -12,8 +12,9 @@ import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import GameStartCountdown from '@/components/ui/GameStartCountdown';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { SoundButton } from '@/components/ui/SoundButton';
+import CreateRoomModal from './ChallengeSelector';
 
 const getDifficultyColor = (difficulty) => {
   switch(difficulty) {
@@ -42,12 +43,6 @@ const gameTimeLimit = (type) => {
   }
 };
 
-async function fetchChallenges(page) {
-  const res = await fetch(`/api/challenges?page=${page}`);
-  if (!res.ok) toast.error("Failed to fetch challenges");
-  return res.json();
-}
-
 async function fetchRandomChallenges(type) {
   let tempType = {
     quiz: 'quiz',
@@ -64,6 +59,8 @@ async function fetchRandomChallenges(type) {
 const BattleMatchmaking = () => {
   const { user } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const openCreateRoom = searchParams.get('openCreateRoom') === 'true';
   const { roomsState, leaderboardState } = useSocketContext();
   const {
     availableRooms, currentRoom, isLoading, countdown, isConnected,
@@ -74,32 +71,7 @@ const BattleMatchmaking = () => {
   const [activeTab, setActiveTab] = useState('quick-match');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedGameType, setSelectedGameType] = useState('quiz');
-  const [selectedChallenge, setSelectedChallenge] = useState(null);
-  const [roomName, setRoomName] = useState('');
-  const [maxPlayers, setMaxPlayers] = useState(4);
-  const [searchQuery, setSearchQuery] = useState('');
   const [playerReady, setPlayerReady] = useState(false);
-  const [quizzes, setQuizzes] = useState([]);
-  const [debuggers, setDebuggers] = useState([]);
-  const [problems, setProblems] = useState([]);
-  const [isLoadingChallenges, setIsLoadingChallenges] = useState(false);
-  const [page, setPage] = useState(1);
-  const hasFetchedRef = useRef(false);
-  const [hasMore, setHasMore] = useState(true);
-  const ITEMS_PER_PAGE = 10;
-  
-  const getChallengesByType = () => {
-    switch(selectedGameType) {
-      case 'quiz': return quizzes;
-      case 'debuggers': return debuggers;
-      case 'problem': return problems;
-      default: return [];
-    }
-  };
-  
-  const filteredChallenges = getChallengesByType().filter(challenge =>
-    challenge.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
 
   const handleQuickMatch = async() => {
     //here add xp later on
@@ -116,18 +88,15 @@ const BattleMatchmaking = () => {
     cancelMatchmaking();
   };
 
-  const handleCreateRoom = () => {
-    if (!roomName.trim() || !selectedChallenge) return;
+  const handleCreateRoom = (roomName, maxPlayers, gameType, challenge) => {
+    // Your exact logic
     const gameSettings = {
-      ...selectedChallenge,
-      mode: selectedGameType || 'quiz',
-      timeLimit: selectedChallenge.timeLimit || gameTimeLimit(selectedGameType), 
+      ...challenge,
+      mode: gameType || 'quiz',
+      timeLimit: challenge.timeLimit || gameTimeLimit(gameType), 
     };
     
-    createRoom(roomName, 'public', maxPlayers, gameSettings, user?.stats?.xp)
-    setShowCreateModal(false);
-    setRoomName('');
-    setSelectedChallenge(null);
+    createRoom(roomName, 'public', maxPlayers, gameSettings, user?.stats?.xp);
   };
 
   const handleJoinRoom = async (roomId) => {
@@ -157,37 +126,6 @@ const BattleMatchmaking = () => {
       return () => clearInterval(interval);
     }
   }, [isConnected, currentRoom, getAvailableRooms]);
-
-  const fetchData = async () => {
-    // Prevent duplicate calls
-    if (hasFetchedRef.current) return;
-    
-    hasFetchedRef.current = true;
-    setIsLoadingChallenges(true);
-    
-    try {
-      const data = await fetchChallenges(page);
-      setQuizzes(prev => [...prev, ...data.quizzes]);
-      setDebuggers(prev => [...prev, ...data.debuggers]);
-      setProblems(prev => [...prev, ...data.problems]);
-      
-      // Check if there's more data
-      if (data.quizzes.length < ITEMS_PER_PAGE) {
-        setHasMore(false);
-      }
-    } catch (error) {
-      console.error('Error fetching challenges:', error);
-    } finally {
-      setIsLoadingChallenges(false);
-    }
-  };
-
-  useEffect(() => {
-    // Reset ref when page changes
-    hasFetchedRef.current = false;
-    fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page]);
   
   useEffect(() => {
     if(currentRoom){
@@ -200,6 +138,13 @@ const BattleMatchmaking = () => {
       getMyPosition();
     }
   }, [getMyPosition]);
+
+  useEffect(() => {
+    if (openCreateRoom) {
+      setActiveTab('browse-rooms');
+      setShowCreateModal(true);
+    }
+  }, [openCreateRoom]);
 
   return (
     <div className="min-h-screen bg-gray-08 text-white-99">
@@ -498,168 +443,11 @@ const BattleMatchmaking = () => {
         )}
       </div>
 
-      {/* Create Room Modal */}
-      {showCreateModal && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
-          <div className="bg-gray-10 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-20">
-            <div className="sticky top-0 bg-gray-10 border-b border-gray-20 p-6 flex items-center justify-between">
-              <h2 className="text-2xl font-bold">Create Room</h2>
-              <button
-                onClick={() => setShowCreateModal(false)}
-                className="p-2 hover:bg-gray-20 rounded-lg transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="p-6 space-y-6">
-              {/* Room Name */}
-              <div>
-                <label className="block text-sm font-medium text-gray-50 mb-2">Room Name</label>
-                <Input
-                  value={roomName}
-                  onChange={(e) => setRoomName(e.target.value)}
-                  placeholder="Enter room name..."
-                  maxLength={50}
-                />
-              </div>
-
-              {/* Game Type */}
-              <div>
-                <label className="block text-sm font-medium text-gray-50 mb-3">Game Type</label>
-                <div className="grid grid-cols-3 gap-3">
-                  <button
-                    onClick={() => {
-                      setSelectedGameType('quiz');
-                      setSelectedChallenge(null);
-                    }}
-                    className={`p-4 rounded-lg border-2 transition-all ${
-                      selectedGameType === 'quiz'
-                        ? 'border-purple-60 bg-purple-60/10'
-                        : 'border-gray-20 hover:border-gray-30'
-                    }`}
-                  >
-                    <BookOpen className="w-6 h-6 mx-auto mb-2" />
-                    <div className="text-sm font-medium">Quiz</div>
-                  </button>
-                  
-                  <button
-                    onClick={() => {
-                      setSelectedGameType('debuggers');
-                      setSelectedChallenge(null);
-                    }}
-                    className={`p-4 rounded-lg border-2 transition-all ${
-                      selectedGameType === 'debuggers'
-                        ? 'border-purple-60 bg-purple-60/10'
-                        : 'border-gray-20 hover:border-gray-30'
-                    }`}
-                  >
-                    <Bug className="w-6 h-6 mx-auto mb-2" />
-                    <div className="text-sm font-medium">Debugger</div>
-                  </button>
-                  
-                  <button
-                    onClick={() => {
-                      setSelectedGameType('problem');
-                      setSelectedChallenge(null);
-                    }}
-                    className={`p-4 rounded-lg border-2 transition-all ${
-                      selectedGameType === 'problem'
-                        ? 'border-purple-60 bg-purple-60/10'
-                        : 'border-gray-20 hover:border-gray-30'
-                    }`}
-                  >
-                    <Code className="w-6 h-6 mx-auto mb-2" />
-                    <div className="text-sm font-medium">Problem</div>
-                  </button>
-                </div>
-              </div>
-
-              {/* Max Players */}
-              <div>
-                <label className="block text-sm font-medium text-gray-50 mb-2">Max Players</label>
-                <Select
-                  value={maxPlayers}
-                  onChange={(value) => {
-                    setMaxPlayers(value)
-                  }}
-                  options={[{label: '2 Players', value: '2'}, {label: '3 Players', value: '3'}, {label: '4 Players', value: '4'}, {label: '5 Players', value: '5'}]}
-                />
-              </div>
-
-              {/* Challenge Selection */}
-              <div>
-                <label className="block text-sm font-medium text-gray-50 mb-2">
-                  Select Challenge
-                </label>
-                <div className="relative mb-3">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-50" />
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search challenges..."
-                    className="w-full pl-10 pr-4 py-2 bg-gray-15 border border-gray-20 rounded-lg focus:outline-none focus:border-purple-60 transition-colors text-sm"
-                  />
-                </div>
-                {isLoadingChallenges ? (
-                  <div className="flex items-center justify-center py-8">
-                    <Loader2 className="w-6 h-6 animate-spin text-purple-60" />
-                    <span className="ml-2 text-gray-50">Loading challenges...</span>
-                  </div>
-                ) : (
-                  <div className="space-y-2 max-h-64 overflow-y-auto">
-                    {filteredChallenges.map((challenge) => (
-                      <button
-                        key={challenge._id}
-                        onClick={() => setSelectedChallenge(challenge)}
-                        className={`w-full p-3 rounded-lg border-2 text-left transition-all ${
-                          selectedChallenge?._id === challenge._id
-                            ? 'border-purple-60 bg-purple-60/10'
-                            : 'border-gray-20 hover:border-gray-30'
-                        }`}
-                      >
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex-1 min-w-0">
-                            <div className="font-medium mb-1">{challenge.title}</div>
-                            <div className="text-sm text-gray-50 truncate">{challenge.description}</div>
-                          </div>
-                          {challenge.difficulty && (
-                            <span className={`text-xs font-medium px-2 py-1 rounded ${getDifficultyColor(challenge.difficulty)} bg-gray-20`}>
-                              {challenge.difficulty}
-                            </span>
-                          )}
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                )}
-                {hasMore && (
-                  <button
-                    onClick={() => setPage(prev => prev + 1)}
-                    disabled={isLoadingChallenges}
-                    className="w-full py-2 text-sm text-purple-60 hover:text-purple-65 font-medium"
-                  >
-                    {isLoadingChallenges ? 'Loading...' : 'Load More'}
-                  </button>
-                )}
-                {filteredChallenges.length === 0 && !isLoadingChallenges && (
-                  <div className="text-center py-8 text-gray-50">No challenges found.</div>
-                )}
-              </div>
-
-              {/* Create Button */}
-              <Button
-                onClick={handleCreateRoom}
-                disabled={!roomName.trim() || !selectedChallenge}
-                className="w-full rounded-lg font-bold text-lg transition-colors"
-              >
-                Create Room
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      <CreateRoomModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onCreateRoom={handleCreateRoom}
+      />
       {countdown && (
         <GameStartCountdown 
           duration={countdown} 

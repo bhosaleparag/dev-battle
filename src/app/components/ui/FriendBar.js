@@ -1,7 +1,7 @@
 "use client";
 
 import { Check, Clock, Crown, MessageCircle, MoreVertical, Shield, User, UserMinus, UserPlus, X, Zap } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Avatar from "./Avatar";
 import ChatWidget from "../realtime/ChatWidget";
 import getStatusBadge from "@/utils/getStatusBadge";
@@ -12,20 +12,24 @@ const FriendMenu = ({
   isOpen, 
   onClose, 
   context, // 'friend', 'request', 'search'
+  showStats,
   onViewProfile,
   onChat,
+  onChallengeFriend,
   onRemoveFriend,
   onAcceptRequest,
   onDeclineRequest,
-  onSendRequest
+  onSendRequest,
+  isPendingInvite
 }) => {
   if (!isOpen) return null;
-
+  const boxRef = useRef(null);
+  
   const menuItems = {
     friend: [
-      { icon: User, label: 'View Profile', onClick: onViewProfile },
+      ...(showStats ? [{ icon: User, label: 'View Profile', onClick: onViewProfile }] : []),      
       { icon: MessageCircle, label: 'Start Chat', onClick: onChat },
-      { icon: Zap, label: 'Challenge', onClick: () => console.log('Challenge friend') },
+      ...(!isPendingInvite ? [{ icon: Zap, label: 'Challenge', onClick: onChallengeFriend }] : []),
       { icon: UserMinus, label: 'Remove Friend', onClick: onRemoveFriend, destructive: true }
     ],
     request: [
@@ -37,10 +41,26 @@ const FriendMenu = ({
     ]
   };
 
+  useEffect(() => {
+    function handleClickOutside(event) {
+      // Check if click is outside the box
+      if (boxRef.current && !boxRef.current.contains(event.target)) {
+        onClose();
+      }
+    }
+
+    // Add event listener
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      // Cleanup on unmount
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [onClose]);
+
   return (
-    <div className="absolute right-0 top-full mt-2 w-44 bg-gray-08 border border-gray-20 rounded-xl shadow-xl z-20 overflow-hidden backdrop-blur-lg">
+    <div ref={boxRef} className="absolute right-0 top-full mt-2 w-44 bg-gray-08 border border-gray-20 rounded-xl shadow-xl z-20 backdrop-blur-lg">
       <div className="py-1">
-        {menuItems[context]?.map((item, index) => (
+        {(menuItems[context] ?? [])?.map((item, index) => (
           <SoundButton
             key={index}
             onClick={() => {
@@ -64,11 +84,15 @@ const FriendBar = ({
   friend,
   context = 'friend', // 'friend', 'request', 'search', 'pending'
   onClick,
+  onChallengeFriend,
   onRemoveFriend,
   onAcceptRequest,
   onDeclineRequest,
-  onSendRequest
+  onSendRequest,
+  isPendingInvite
 }) => {
+  if (!friend) return null;
+  
   const [showMenu, setShowMenu] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const router = useRouter();
@@ -162,17 +186,22 @@ const FriendBar = ({
             >
               <MoreVertical size={16} className="text-gray-50" />
             </SoundButton>
+            
             <FriendMenu
               isOpen={showMenu}
               onClose={() => setShowMenu(false)}
               context={context}
+              isPendingInvite={isPendingInvite}
+              showStats={friend.showStats ?? true}
               onViewProfile={()=>onViewProfile(friend.uid)}
               onChat={()=>setChatOpen(prev=>!prev)}
+              onChallengeFriend={onChallengeFriend}
               onRemoveFriend={onRemoveFriend}
             />
           </div>
         );
     }
+    return null;
   };
 
   return (
@@ -184,9 +213,7 @@ const FriendBar = ({
         <Avatar
           src={friend.avatar}
           alt={friend.username}
-          size={40} // Smaller on mobile
-          className="sm:w-12 sm:h-12" // Larger on desktop
-          status={friend.status}
+          status={friend.presence}
           fallbackText={friend.username?.charAt(0)?.toUpperCase()}
         />
         {context === 'request' && (
@@ -200,7 +227,9 @@ const FriendBar = ({
       <div className="flex-1 min-w-0 space-y-0.5 sm:space-y-1">
         <div className="flex items-center gap-1.5 sm:gap-2">
           <h3 className="font-semibold text-white-99 truncate text-sm sm:text-base">{friend.username}</h3>
-          <rankIcon.icon size={12} className={`${rankIcon.color} sm:w-3.5 sm:h-3.5 shrink-0`} />
+          {rankIcon?.icon && (
+            <rankIcon.icon size={12} className={`${rankIcon.color} sm:w-3.5 sm:h-3.5 shrink-0`} />
+          )}
         </div>
         
         <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">

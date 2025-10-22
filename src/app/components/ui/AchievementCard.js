@@ -41,7 +41,7 @@ const rarityConfig = {
   }
 };
 
-export default function AchievementCard({ achievement, unlocked = false, progress = 0 }) {
+export default function AchievementCard({ achievement, unlocked = false, unlockedAt, progress = 0 }) {
   const Icon = AchievementIcons[achievement.icon] || Trophy;
   const rarity = achievement.rarity || 'common';
   const config = rarityConfig[rarity];
@@ -110,14 +110,12 @@ export default function AchievementCard({ achievement, unlocked = false, progres
       {/* Content */}
       <div className="space-y-3 relative z-10">
         <div className="text-center">
-          <h3 className={`
-            font-bold text-lg mb-1
+          <h3 className={`font-bold text-lg mb-1
             ${unlocked ? 'text-white' : 'text-gray-50'}
           `}>
             {achievement.name}
           </h3>
-          <p className={`
-            text-sm leading-relaxed
+          <p className={`text-sm leading-relaxed
             ${unlocked ? 'text-white/80' : 'text-gray-60'}
           `}>
             {achievement.description}
@@ -141,8 +139,7 @@ export default function AchievementCard({ achievement, unlocked = false, progres
         )}
 
         {/* Divider */}
-        <div className={`
-          h-px w-full
+        <div className={`h-px w-full
           ${unlocked ? 'bg-white/20' : 'bg-gray-30'}
         `} />
 
@@ -160,9 +157,9 @@ export default function AchievementCard({ achievement, unlocked = false, progres
           </div>
 
           {/* Unlocked date */}
-          {unlocked && achievement.unlockedAt && (
+          {unlocked && unlockedAt && (
             <div className="text-xs text-white/60">
-              {formatDate(achievement.unlockedAt, {
+              {formatDate(unlockedAt, {
                 month: 'short',
                 day: 'numeric'
               })}

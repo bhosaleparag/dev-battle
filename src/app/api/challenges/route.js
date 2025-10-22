@@ -1,6 +1,8 @@
 import { client } from "@/lib/sanity";
 import { NextResponse } from "next/server";
 
+export const revalidate = false;
+
 const ITEMS_PER_PAGE = 10;
 
 export async function GET(req) {

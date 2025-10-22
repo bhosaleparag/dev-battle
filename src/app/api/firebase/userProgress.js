@@ -68,6 +68,9 @@ async function saveProgress(userId, challengeId, type, completed, newXP) {
     const xpDifference = newXP - oldChallengeXP;
     const newTotalXP = progressData.totalXP + xpDifference;
 
+    // Update stats based on type (only increment if new completion)
+    const isNewCompletion = !progressData.challenges[challengeId]?.completed && completed;
+    
     // Update challenge data
     progressData.challenges[challengeId] = {
       xp: newXP,
@@ -76,8 +79,6 @@ async function saveProgress(userId, challengeId, type, completed, newXP) {
       completedAt: serverTimestamp()
     };
 
-    // Update stats based on type (only increment if new completion)
-    const isNewCompletion = !progressData.challenges[challengeId]?.completed && completed;
     if (isNewCompletion) {
       if (type === 'challenge') {
         progressData.stats.challengesCompleted += 1;

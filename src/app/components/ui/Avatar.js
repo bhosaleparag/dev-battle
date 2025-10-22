@@ -1,6 +1,7 @@
 "use client"
 import React, { useState, useEffect } from 'react';
 import { User, Loader2 } from 'lucide-react';
+import Image from 'next/image';
 
 const Avatar = ({
   // Image props
@@ -53,6 +54,7 @@ const Avatar = ({
   // Size configurations - now includes container padding to accommodate status
   const sizeClasses = {
     xs: {
+      width: 25, height: 25,
       avatar: 'w-6 h-6',
       container: 'w-8 h-8', // Extra space for status
       text: 'text-xs',
@@ -61,6 +63,7 @@ const Avatar = ({
       loader: 'w-3 h-3'
     },
     sm: {
+      width: 30, height: 30,
       avatar: 'w-8 h-8',
       container: 'w-10 h-10',
       text: 'text-xs',
@@ -69,6 +72,7 @@ const Avatar = ({
       loader: 'w-4 h-4'
     },
     md: {
+      width: 40, height: 40,
       avatar: 'w-10 h-10',
       container: 'w-12 h-12',
       text: 'text-sm',
@@ -77,6 +81,7 @@ const Avatar = ({
       loader: 'w-5 h-5'
     },
     lg: {
+      width: 50, height: 50,
       avatar: 'w-12 h-12',
       container: 'w-14 h-14',
       text: 'text-base',
@@ -85,6 +90,7 @@ const Avatar = ({
       loader: 'w-6 h-6'
     },
     xl: {
+      width: 55, height: 55,
       avatar: 'w-16 h-16',
       container: 'w-18 h-18',
       text: 'text-lg',
@@ -93,6 +99,7 @@ const Avatar = ({
       loader: 'w-8 h-8'
     },
     '2xl': {
+      width: 60, height: 60,
       avatar: 'w-20 h-20',
       container: 'w-22 h-22',
       text: 'text-xl',
@@ -196,9 +203,11 @@ const Avatar = ({
       >
         {/* Image */}
         {src && (
-          <img
+          <Image
             src={src}
             alt={alt}
+            width={sizeConfig.width}
+            height={sizeConfig.height}
             className={`w-full h-full object-cover transition-opacity duration-300 ${
               showImage ? 'opacity-100' : 'opacity-0'
             }`}

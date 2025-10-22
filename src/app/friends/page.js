@@ -1,22 +1,17 @@
 "use client";
 import React, { Fragment, useEffect, useState } from 'react';
-import { 
-  Users, 
-  UserPlus, 
-  Search,
-  Clock,
-  UserCheck,
-  RefreshCcw,
-} from 'lucide-react';
+import { Users, UserPlus, Search, Clock, UserCheck, RefreshCcw, Swords } from 'lucide-react';
 import Modal from '@/components/ui/Dialog';
 import SearchField from '@/explore/components/SearchField';
 import FriendBar from '@/components/ui/FriendBar';
 import useAuth from '@/hooks/useAuth';
 import { useSocketContext } from '@/context/SocketProvider';
-import { getFirestoreUsersByIds, searchUsers } from '@/api/firebase/users';
+import { searchUsers } from '@/api/firebase/users';
 import Button from '@/components/ui/Button';
 import { toast } from 'sonner';
 import { SoundButton } from '@/components/ui/SoundButton';
+import CreateRoomModal from '@/battles/ChallengeSelector';
+import SentInvitesList from '@/components/FriendMatch/SentInvitesList';
 
 // Tab Button Component
 const TabButton = ({ active, onClick, children, count }) => (
@@ -40,161 +35,106 @@ const TabButton = ({ active, onClick, children, count }) => (
 );
 
 const FriendsList = () => {
-  const { isConnected, friendsState } = useSocketContext();
-  const { getFriends, friendList, removeFriend, acceptFriendRequest, sendFriendRequest } = friendsState;
+  const { isConnected, friendsState, roomsState } = useSocketContext();
+  const { inviteFriend, cancelFriendInvite, sentInvites } = roomsState;
+  const { getFriends, friendList, setFriendList, removeFriend, acceptFriendRequest, sendFriendRequest } = friendsState;
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('friends');
   const [showAddModal, setShowAddModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
-  const [friendRequests, setFriendRequests] = useState([]);
-  const [friends, setFriends] = useState([]);
   const [recentSearches, setRecentSearches] = useState([]);
+  const [selectedFriend, setSelectedFriend] = useState(null);
+  const [showInviteModal, setShowInviteModal] = useState(false);
   
+  // Get friends and requests directly from socket state
+  const friends = friendList?.accepted || [];
+  const friendRequests = friendList?.pending || [];
+
   const handleSearch = async () => {
     let tempSearch = searchQuery.trim();
-    if (!tempSearch && tempSearch.length > 4 ) return;
+    if (!tempSearch || tempSearch.length < 4) return;
     
     // Add to recent searches
     if (!recentSearches.includes(searchQuery)) {
       setRecentSearches(prev => [searchQuery, ...prev.slice(0, 4)]);
     }
+    
+    // Create exclusion list
     let tempFrd = friends?.map(f => f.uid);
     let tempFrdReq = friendRequests?.map(fr => fr.uid);
     const friendsList = [...tempFrdReq, ...tempFrd, user.uid];
+    
     const result = await searchUsers(tempSearch, friendsList);
-    setSearchResults(result)
+    setSearchResults(result);
   };
 
   const onRemoveFriend = async (friendUid) => {
-    const removedFriend = friends.find(friend => friend.uid === friendUid);
-
-    setFriends(prev => prev.filter(friend => friend.uid !== friendUid));
-    
     try {
       await removeFriend(friendUid);
+      toast.success('Friend removed successfully');
     } catch (error) {
-      // Rollback on error
-      if (removedFriend) {
-        setFriends(prev => [...prev, removedFriend]);
-      }
-      // Show error message to user
-      toast.error('Failed to remove friend. Please try again.', {
-        duration: 4000,
-      });
+      toast.error('Failed to remove friend. Please try again.');
     }
-    
   };
 
-  const onAcceptRequest = async (requestUid) => {
-    const acceptedFriend = friendRequests.find(req => req.uid === requestUid);
-    
-    if (!acceptedFriend) return;
-    
-    // Optimistic update
-    setFriendRequests(prev => prev.filter(req => req.uid !== requestUid));
-    setFriends(prev => [...prev, acceptedFriend]);
-    
+  const onAcceptRequest = async (requested) => {
     try {
-      await acceptFriendRequest(requestUid);
+      await acceptFriendRequest(requested.uid);
+      toast.success('Friend request accepted!');
     } catch (error) {
-      setFriends(prev => prev.filter(friend => friend.uid !== requestUid));
-      setFriendRequests(prev => [...prev, acceptedFriend]);
-      
-      toast.error('Failed to accept request. Please try again.', {
-        duration: 4000,
-      });
+      toast.error('Failed to accept request. Please try again.');
     }
   };
 
   const onDeclineRequest = async (requestUid) => {
-    const declinedRequest = friendRequests.find(req => req.uid === requestUid);
-    setFriendRequests(prev => prev.filter(req => req.uid !== requestUid));
-    
     try {
       await removeFriend(requestUid);
+      toast.success('Friend request declined');
     } catch (error) {
-      // Rollback on error
-      if (declinedRequest) { setFriendRequests(prev => [...prev, declinedRequest]) }
-      toast.error('Failed to decline request. Please try again.', {
-        duration: 4000,
-      });
+      toast.error('Failed to decline request. Please try again.');
     }
   };
 
-  const onSendRequest = async (friendUid, friendData = null) => {
+  const onSendRequest = async (friend) => {
     try {
-      setShowAddModal(false)
-      await sendFriendRequest(friendUid);
-
-      if (friendData) {
-        const newRequest = {
-          ...friendData,
-          presence: 'offline',
-          senderId: user.uid
-        };
-        setFriendRequests(prev => [...prev, newRequest]);
-      } else {
-        const userData = await getFirestoreUsersByIds([friendUid]);
-        if (userData.length > 0) {
-          const newRequest = {
-            ...userData[0],
-            presence: 'offline',
-            senderId: user.uid
-          };
-          setFriendRequests(prev => [...prev, newRequest]);
-        }
-      }
-      toast.success('Friend request sent!', { duration: 3000});
-      
+      setShowAddModal(false);
+      await sendFriendRequest(friend.uid);
+      toast.success('Friend request sent!');
+      setFriendList(prev=>({
+        ...prev, pending: [
+          ...(prev.pending || []), 
+          {...friend, status: 'pending', senderId: user.uid}
+        ]
+      }))
     } catch (error) {
-      toast.error('Failed to send friend request. Please try again.', { duration: 3000});
+      toast.error('Failed to send friend request. Please try again.');
     }
+  };
+
+  const handleMatchInviteFriend = (friend) => {
+    setSelectedFriend(friend);
+    setShowInviteModal(true);
+  };
+
+  const handleMatchSendInvite = (friendId, friendUsername, gameSettings) => {
+    inviteFriend(friendId, friendUsername, gameSettings);
+  };
+
+  const handleMatchCancelInvite = (inviteId) => {
+    cancelFriendInvite(inviteId);
+  };
+
+  // Check if friend has pending invite
+  const hasMatchPendingInvite = (friendId) => {
+    return sentInvites.some(inv => inv.receiverId === friendId);
   };
 
   useEffect(() => {
-    if(isConnected){ 
+    if (isConnected) { 
       getFriends();
     }
-  }, [isConnected, getFriends])
-  
-  useEffect(() => {
-    const handleFriendListUpdate = async () => {
-      if(friendList?.accepted?.length > 0){
-        const friendPresence = new Map();
-        friendList.accepted.forEach(friend => {
-          friendPresence.set(friend.uid, { presence: friend.presence, senderId: friend.senderId })
-        });
-        const tempUIDs = friendList.accepted.map(req=>req.uid)
-        const friendsData = await getFirestoreUsersByIds(tempUIDs)
-        const mergedFriends = friendsData.map(user => ({
-            ...user,
-            ...friendPresence.get(user.uid)
-        }));
-        setFriends(mergedFriends || [])
-      } else {
-        setFriends([])
-      }
-
-      // Handle pending friends - always update, even if empty
-      if(friendList?.pending?.length > 0){
-        const friendPresence = new Map();
-        friendList.pending.forEach(friend => {
-          friendPresence.set(friend.uid, { presence: friend.presence, senderId: friend.senderId })
-        });
-        const tempUIDs = friendList.pending.map(req=>req.uid)
-        const requestedFriendData = await getFirestoreUsersByIds(tempUIDs)
-        const mergedFriendsReq = requestedFriendData.map(user => ({
-            ...user,
-            ...friendPresence.get(user.uid)
-        }));
-        setFriendRequests(mergedFriendsReq || [])
-      } else {
-        setFriendRequests([])
-      }
-    }
-    handleFriendListUpdate();
-  }, [friendList])
+  }, [isConnected, getFriends]);
   
   const onlineFriends = friends.filter(f => f.presence === 'online' || f.presence === 'away' || f.presence === 'busy');
   const offlineFriends = friends.filter(f => f.presence === 'offline');
@@ -243,6 +183,14 @@ const FriendsList = () => {
             <Clock size={16} />
             Requests
           </TabButton>
+          <TabButton
+            active={activeTab === 'matchRequest'}
+            onClick={() => setActiveTab('matchRequest')}
+            count={sentInvites?.length}
+          >
+            <Swords size={16} />
+              Match Request
+          </TabButton>
           <Button onClick={getFriends} variant="ghost" className="ml-auto spin-once">
             <RefreshCcw size={16}/>
           </Button>
@@ -280,10 +228,11 @@ const FriendsList = () => {
                     </div>
                     <div className="space-y-2">
                       {onlineFriends.map((friend, idx) => (
-                        <Fragment key={idx}>
+                        <Fragment key={friend.uid || idx}>
                           <FriendBar
                             friend={friend}
-                            onClick={() => console.log('Clicked friend:', friend.name)}
+                            isPendingInvite={hasMatchPendingInvite(friend.id)}
+                            onChallengeFriend={()=>handleMatchInviteFriend(friend)}
                             onRemoveFriend={() => onRemoveFriend(friend.uid)}
                           />
                         </Fragment>
@@ -303,11 +252,11 @@ const FriendsList = () => {
                     </div>
                     <div className="space-y-2">
                       {offlineFriends.map((friend, idx) => (
-                        <Fragment key={idx}>
+                        <Fragment key={friend.uid || idx}>
                           <FriendBar
                             friend={friend}
                             context="friend"
-                            onClick={() => console.log('Clicked friend:', friend.name)}
+                            onClick={() => console.log('Clicked friend:', friend.username)}
                             onRemoveFriend={() => onRemoveFriend(friend.uid)}
                           />
                         </Fragment>
@@ -337,18 +286,37 @@ const FriendsList = () => {
                 </h3>
                 <div className="space-y-2">
                   {friendRequests?.map((request, idx) => (
-                    <Fragment key={idx}>  
+                    <Fragment key={request.uid || idx}>  
                       <FriendBar
                         friend={request}
                         context={`${request?.senderId === user.uid ? 'pending' : 'request'}`}
-                        onClick={() => console.log('Clicked request:', request.name)}
-                        onAcceptRequest={() => onAcceptRequest(request.uid)}
+                        onClick={() => console.log('Clicked request:', request.username)}
+                        onAcceptRequest={() => onAcceptRequest(request)}
                         onDeclineRequest={() => onDeclineRequest(request.uid)}
                       />
                     </Fragment>
                   ))}
                 </div>
               </>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'matchRequest' && (
+          <div className="space-y-3 mt-2">
+            {sentInvites.length > 0 ? (
+              <SentInvitesList 
+                invites={sentInvites}
+                onCancel={handleMatchCancelInvite}
+              />
+            ):(
+              <div className="text-center py-12">
+                <div className="p-4 bg-gray-15 rounded-2xl w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+                <Users size={32} className="text-gray-40" />
+                </div>
+                <h3 className="text-lg font-semibold text-white-99 mb-2">No Pending Invites</h3>
+                <p className="text-gray-50">Start by inviting an online friend to play</p>
+              </div>
             )}
           </div>
         )}
@@ -380,14 +348,13 @@ const FriendsList = () => {
             <div className="space-y-4">
               <h3 className="text-sm font-semibold text-white-95 uppercase tracking-wide">Search Results</h3>
               <div className="space-y-2 max-h-80 overflow-y-auto">
-                {}
                 {searchResults.map((result, idx) => (
-                  <Fragment key={idx}>
+                  <Fragment key={result.uid || idx}>
                     <FriendBar
                       friend={result}
                       context="search"
                       onClick={() => console.log('Clicked search result:', result.uid, result.username)}
-                      onSendRequest={(user)=>onSendRequest(result.uid, user)}
+                      onSendRequest={() => onSendRequest(result)}
                     />
                   </Fragment>
                 ))}
@@ -407,6 +374,16 @@ const FriendsList = () => {
           )}
         </div>
       </Modal>
+
+      <CreateRoomModal
+        friend={selectedFriend}
+        isOpen={showInviteModal}
+        onClose={() => {
+          setShowInviteModal(false);
+          setSelectedFriend(null);
+        }}
+        onCreateRoom={handleMatchSendInvite}
+      />
     </div>
   );
 };

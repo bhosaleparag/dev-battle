@@ -32,16 +32,11 @@ export function AuthProvider({ children }) {
           // Fetch user profile
           const userData = await getUserProfile(firebaseUser.uid);
           setUser(userData);
-          
         } else {
-          // User logged out
           await fetch("/api/auth/session", { method: "DELETE" });
           setUser(null);
         }
       } catch (err) {
-        console.error("Auth error:", err);
-        
-        // Clear session on error
         await fetch("/api/auth/session", { method: "DELETE" });
         setUser(null);
       } finally {
@@ -60,7 +55,6 @@ export function AuthProvider({ children }) {
       await fetch("/api/auth/session", { method: "DELETE" });
       setUser(null);
     } catch (err) {
-      console.error("Sign out error:", err);
     } finally {
       setLoading(false);
     }

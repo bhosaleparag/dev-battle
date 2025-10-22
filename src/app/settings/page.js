@@ -886,9 +886,9 @@ export default function AccountSettings() {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 relative">
           {/* Content */}
-          <div className="flex-1 overflow-y-auto p-6">
+          <div className="absolute inset-0 overflow-y-auto p-6">
             {renderTabContent()}
           </div>
         </div>

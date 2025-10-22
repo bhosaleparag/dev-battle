@@ -29,9 +29,7 @@ export const getFirestoreUsersByIds = async (userIds) => {
     const querySnapshot = await getDocs(q);
     
     const usersList = [];
-    querySnapshot.forEach((doc) => {
-      usersList.push(doc.data());
-    });
+    querySnapshot.forEach((doc) => {usersList.push(doc.data())});
     
     return usersList; // Array of user profile objects
   } catch (error) {
@@ -47,30 +45,26 @@ export const searchUsers = async (searchTerm, friends = []) => {
   const uniqueUsers = new Map();
   const endAtPrefix = searchTerm + '\uf8ff';
   
-  const qUsername = query(
-    usersRef,
-    where("username", ">=", searchTerm),
-    where("username", "<=", endAtPrefix),
-    orderBy("username")
-  );
-  const usernameSnapshot = await getDocs(qUsername);
+  const qUsername = query(usersRef, where("username", ">=", searchTerm), where("username", "<=", endAtPrefix), orderBy("username"));
+  const qEmail = query(usersRef, where("email", ">=", searchTerm), where("email", "<=", endAtPrefix), orderBy("email"));
+  
+  // Execute both queries in parallel
+  const [usernameSnapshot, emailSnapshot] = await Promise.all([getDocs(qUsername), getDocs(qEmail)]);
+  
+  // Process username results
   usernameSnapshot.forEach(doc => {
     const userData = doc.data();
-    if(friends.includes(userData.uid)) return;
-    uniqueUsers.set(userData.uid, userData); 
+    if (!friends.includes(userData.uid)) {
+      uniqueUsers.set(userData.uid, userData);
+    }
   });
   
-  const qEmail =  query(
-    usersRef,
-    where("email", ">=", searchTerm),
-    where("email", "<=", endAtPrefix),
-    orderBy("email") // Firestore requires an orderBy for range queries
-  );
-  const emailSnapshot = await getDocs(qEmail);
+  // Process email results
   emailSnapshot.forEach(doc => {
     const userData = doc.data();
-    if(friends.includes(userData.uid)) return;
-    uniqueUsers.set(userData.uid, userData); 
+    if (!friends.includes(userData.uid)) {
+      uniqueUsers.set(userData.uid, userData);
+    }
   });
 
   return Array.from(uniqueUsers.values());

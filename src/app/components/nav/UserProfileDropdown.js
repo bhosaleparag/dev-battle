@@ -15,6 +15,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { calculateLevel } from '@/utils/calculateLevel';
 import { SoundButton } from '../ui/SoundButton';
+import Avatar from '../ui/Avatar';
 
 export default function UserProfileDropdown({ user, signOut, onOpenSettings, onOpenProfile, userStats }) {
   const router = useRouter();
@@ -96,19 +97,12 @@ export default function UserProfileDropdown({ user, signOut, onOpenSettings, onO
         className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-15 transition-colors group"
         aria-label="User menu"
       >
-        <div className="relative">
-          <Image
-            width={40} height={40}
-            src={user?.avatar || '/default-avatar.png'}
-            alt="Profile"
-            className="rounded-full object-cover border-2 border-gray-20 group-hover:border-purple-60 transition-colors"
-            onError={(e) => {
-              e.target.src = '/default-avatar.png';
-            }}
-          />
-          {/* Online status indicator */}
-          <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-gray-08 rounded-full"></div>
-        </div>
+        <Avatar
+          src={user?.avatar}
+          alt={user.username}
+          status={'online'}
+          fallbackText={user.username?.charAt(0)?.toUpperCase()}
+        />
         
         {/* Desktop: Show username and chevron */}
         <div className="hidden md:flex items-center space-x-1">
@@ -138,11 +132,11 @@ export default function UserProfileDropdown({ user, signOut, onOpenSettings, onO
             {/* User Info Header */}
             <div className="p-3 bg-gradient-to-r from-purple-60 to-purple-70 text-white">
               <div className="flex items-center space-x-3">
-                <Image
-                  width={40} height={40}
-                  src={user?.avatar || '/default-avatar.png'}
-                  alt="Profile"
-                  className="rounded-full object-cover border-2 border-white/20"
+                <Avatar
+                  src={user?.avatar}
+                  alt={user.username}
+                  status={'online'}
+                  fallbackText={user.username?.charAt(0)?.toUpperCase()}
                 />
                 <div className="flex-1">
                   <div className="font-semibold">

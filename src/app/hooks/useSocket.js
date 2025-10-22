@@ -530,6 +530,8 @@ export const useRooms = (socket, isConnected, user) => {
   const [currentRoom, setCurrentRoom] = useState(null);
   const [roomEvents, setRoomEvents] = useState([]);
   const [gameResult, setGameResult] = useState(null);
+  const [pendingInvites, setPendingInvites] = useState([]);
+  const [sentInvites, setSentInvites] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [countdown, setCountdown] = useState(null);
 
@@ -600,6 +602,42 @@ export const useRooms = (socket, isConnected, user) => {
   const getQueueStatus = useCallback(() => {
     if (socket && isConnected) {
       socket.emit('get-queue-status', {});
+    }
+  }, [socket, isConnected]);
+
+  // ============ Friendly match EVENTS ============
+  // Friend Match Functions
+  const inviteFriend = useCallback((friendId, friendUsername, gameSettings) => {
+    if (socket && isConnected) {
+      socket.emit('friend-match-invite', {
+        friendId,
+        friendUsername,
+        gameSettings: {
+          mode: 'friend',
+          timeLimit: gameSettings?.timeLimit || 600,
+          difficulty: gameSettings?.difficulty || 'medium',
+          xp: gameSettings?.xp || 50,
+          ...gameSettings
+        }
+      });
+    }
+  }, [socket, isConnected]);
+
+  const acceptFriendInvite = useCallback((inviteId) => {
+    if (socket && isConnected) {
+      socket.emit('friend-match-accept', { inviteId });
+    }
+  }, [socket, isConnected]);
+
+  const declineFriendInvite = useCallback((inviteId) => {
+    if (socket && isConnected) {
+      socket.emit('friend-match-decline', { inviteId });
+    }
+  }, [socket, isConnected]);
+
+  const cancelFriendInvite = useCallback((inviteId) => {
+    if (socket && isConnected) {
+      socket.emit('friend-match-cancel', { inviteId });
     }
   }, [socket, isConnected]);
 
@@ -779,21 +817,9 @@ export const useRooms = (socket, isConnected, user) => {
       }]);
     });
 
-    // Timer Updated
-    // socket.on('timer-updated', (data) => {
-    //   if (currentRoom) {
-    //     setCurrentRoom(prev => ({
-    //       ...prev,
-    //       timeRemaining: data.timeRemaining,
-    //       totalTime: data.totalTime
-    //     }));
-    //   }
-    // });
-
     // Game Finished
     socket.on('game-finished', (data) => {
       if (currentRoom && currentRoom.id === data.roomId) {
-        console.log('game-finished', data)        
         // Update room state
         setCurrentRoom(prev => ({ 
           ...prev, 
@@ -883,6 +909,69 @@ export const useRooms = (socket, isConnected, user) => {
       console.log('Queue Status:', data);
     });
 
+    // ============ Friendly Match EVENTS ============
+
+    // When you send an invite
+    socket.on('friend-invite-sent', (data) => {
+      setSentInvites(prev => [...prev, data.invite]);
+      toast.success(`Invite sent to ${data.invite.receiverUsername}`);
+    });
+
+    // When you receive an invite
+    socket.on('friend-invite-received', (data) => {
+      setPendingInvites(prev => [...prev, data.invite]);
+      console.log('Invite received from', data.invite.senderUsername);
+    });
+
+    // When friend accepts your invite
+    socket.on('friend-invite-accepted', (data) => {
+      setSentInvites(prev => prev.filter(inv => inv.id !== data.inviteId));
+      // Match found event will be handled separately
+    });
+
+    // When friend declines your invite
+    socket.on('friend-invite-declined', (data) => {
+      setSentInvites(prev => prev.filter(inv => inv.id !== data.inviteId));
+      setPendingInvites(prev => prev.filter(inv => inv.id !== data.inviteId));
+      toast.info(data.message || 'Invite declined');
+    });
+    
+    // When sender cancels invite you received
+    socket.on('friend-invite-cancelled', (data) => {
+      setSentInvites(prev => prev.filter(inv => inv.id !== data.inviteId));
+      setPendingInvites(prev => prev.filter(inv => inv.id !== data.inviteId));
+      toast.info('Invite cancelled by sender');
+    });
+
+    // When invite expires
+    socket.on('friend-invite-expired', (data) => {
+      setPendingInvites(prev => prev.filter(inv => inv.id !== data.inviteId));
+      setSentInvites(prev => prev.filter(inv => inv.id !== data.inviteId));
+      toast.info(`Invite expired`);
+    });
+
+    // Match found 
+    socket.on('friend-match-found', (data) => {
+      // Clear invites
+      setPendingInvites([]);
+      setSentInvites([]);
+
+      setCurrentRoom({
+        id: data.roomId,
+        type: 'quick',
+        name: 'Friends Match',
+        participants: data.participants,
+        participantDetails: data.participantDetails,
+        gameSettings: data.gameSettings,
+        maxPlayers: 2,
+        status: 'waiting',
+        matched: true
+      });
+
+      // Handle match found (join room, show countdown, etc.)
+      toast.success('Friend match found!');
+    });
+
     // ============ ERROR HANDLING ============
 
     socket.on('room-error', (data) => {
@@ -921,6 +1010,13 @@ export const useRooms = (socket, isConnected, user) => {
       socket.off('matchmaking-queued');
       socket.off('matchmaking-cancelled');
       socket.off('queue-status');
+      socket.off('friend-invite-sent');
+      socket.off('friend-invite-received');
+      socket.off('friend-invite-accepted');
+      socket.off('friend-invite-declined');
+      socket.off('friend-invite-cancelled');
+      socket.off('friend-invite-expired');
+      socket.off('friend-match-found');
       socket.off('room-error');
       socket.off('matchmaking-error');
     };
@@ -950,6 +1046,14 @@ export const useRooms = (socket, isConnected, user) => {
     cancelMatchmaking,
     getQueueStatus,
     
+    // Friend Match Actions
+    inviteFriend,
+    acceptFriendInvite,
+    declineFriendInvite,
+    cancelFriendInvite,
+    pendingInvites,
+    sentInvites,
+
     // Game Actions
     solveBug,
     answerQuestion,
@@ -1027,6 +1131,8 @@ export const useLeaderboard = (socket, isConnected) => {
       });
     });
 
+    getLeaderboard();
+
     return () => {
       socket.off('leaderboard-data');
       socket.off('my-position');
@@ -1047,11 +1153,11 @@ export const useLeaderboard = (socket, isConnected) => {
   };
 };
 
-
-// Hook for chat functionality
 export const useFriends = (socket, isConnected, user) => {
   const [friendList, setFriendList] = useState({ accepted: [], pending: [] });
+  const [loading, setLoading] = useState(false);
 
+  // Actions
   const sendFriendRequest = useCallback((targetId) => {
     if (socket && isConnected) {
       socket.emit('send-friend-request', { targetUserId: targetId });
@@ -1072,53 +1178,116 @@ export const useFriends = (socket, isConnected, user) => {
 
   const getFriends = useCallback(() => {
     if (socket && isConnected) {
+      setLoading(true);
       socket.emit('get-friends');
     }
   }, [socket, isConnected]);
 
   useEffect(() => {
     if (!socket || !isConnected) return;
-    
-    socket.on('friend-list', (friendList) => {
-      setFriendList(friendList);
+
+    // ✅ Receive full friend list 
+    socket.on('friend-list', (data) => {
+      setFriendList({
+        accepted: data.accepted || [],
+        pending: data.pending || []
+      });
+      setLoading(false);
     });
 
-    socket.on('friend-removed', (friend) => {
+    // ✅ Friend removed
+    socket.on('friend-removed', (data) => {
       setFriendList(prev => ({
         ...prev,
-        accepted: prev.accepted.filter(f => f.uid !== friend.by),
-        pending: prev.pending.filter(f => f.uid !== friend.by)
+        accepted: prev.accepted.filter(f => f.uid !== data.by),
+        pending: prev.pending.filter(f => f.uid !== data.by)
       }));
     });
 
-    socket.on('friend-request-accepted', (friend) => {
-      let tempFriend = { uid: friend.from, username: friend.username, presence: 'online', status: 'accepted', senderId: user.uid };
-      setFriendList(prev =>({
+    // ✅ Friend request accepted
+    socket.on('friend-request-accepted', (data) => {
+      const enrichedFriend = {
+        uid: data.from,
+        username: data.username || 'Unknown',
+        avatar: data.avatar || null,
+        showStats: data.showStats ?? true,
+        presence: 'online',
+        status: 'accepted',
+        senderId: user?.uid
+      };
+
+      setFriendList(prev => ({
         ...prev,
-        accepted: [...prev.accepted, tempFriend],
-        pending: prev.pending.filter(f => f.uid !== friend.from)
+        accepted: [...prev.accepted, enrichedFriend],
+        pending: prev.pending.filter(f => f.uid !== data.from)
       }));
     });
 
-    socket.on('friend-request-received', (friend) => {
-      let tempFriend = { uid: friend.from, username: friend.username, presence: 'online', status: 'pending', senderId: friend.from };
-      setFriendList(prev =>({
+    // ✅ Friend request received
+    socket.on('friend-request-received', (data) => {
+      const enrichedFriend = {
+        uid: data.from,
+        username: data.username || 'Unknown',
+        avatar: data.avatar || null,
+        showStats: data.showStats ?? true,
+        presence: 'online',
+        status: 'pending',
+        senderId: data.from
+      };
+
+      setFriendList(prev => ({
         ...prev,
-        pending: [...prev.pending, tempFriend] 
+        pending: [...prev.pending, enrichedFriend]
       }));
     });
+
+    // ✅ Handle friend accepted
+    socket.on('friend-accepted', (data) => {
+      const { friendId, presence } = data;
+      setFriendList(prev => {
+        const acceptedFriend = prev.pending.find(friend => friend.uid === friendId);
+        if (!acceptedFriend) return prev;
+        let updatedPending = prev.pending.filter(friend => friend.uid !== friendId);
+        const updatedAccepted = [...(prev.accepted || []), {...acceptedFriend, status: 'accepted', presence }];
+
+        return {
+          ...prev,
+          pending: updatedPending,
+          accepted: updatedAccepted
+        };
+      });
+    });
+
+    // ✅ Handle errors
+    socket.on('friend-error', (data) => {
+      toast.error(data.message || 'An error occurred');
+      setLoading(false);
+    });
+
+    socket.on('friend-presence-update', (data) => {
+      setFriendList(prev => ({
+        accepted: prev.accepted.map(f => f.uid === data.userId ? { ...f, presence: data.presence } : f ),
+        pending: prev.pending.map(f => f.uid === data.userId ? { ...f, presence: data.presence } : f )
+      }));
+    });
+
+    // Initial fetch
+    getFriends();
 
     return () => {
       socket.off('friend-list');
       socket.off('friend-removed');
       socket.off('friend-request-accepted');
       socket.off('friend-request-received');
-
+      socket.off('friend-error');
+      socket.off('friend-presence-update');
     };
-  }, [socket, isConnected]);
+  }, [socket, isConnected, getFriends, user?.uid]);
 
   return {
     friendList,
+    setFriendList,
+    loading,
     getFriends,
     removeFriend,
     acceptFriendRequest,
@@ -1134,22 +1303,17 @@ export const useAchievements = (socket, isConnected) => {
 
   // ============ ACHIEVEMENT ACTIONS ============
 
-  const getAchievements = useCallback((useCache = true) => {
-    if (socket && isConnected) {
-      setIsLoading(true);
-      socket.emit('get-achievements', { useCache });
-    }
-  }, [socket, isConnected]);
+  // const getAchievements = useCallback((useCache = true) => {
+  //   if (socket && isConnected) {
+  //     setIsLoading(true);
+  //     socket.emit('get-achievements', { useCache });
+  //   }
+  // }, [socket, isConnected]);
 
   const getMyAchievements = useCallback((useCache = true) => {
     if (socket && isConnected) {
+      setIsLoading(true);
       socket.emit('get-my-achievements', { useCache });
-    }
-  }, [socket, isConnected]);
-
-  const unlockAchievement = useCallback((achievementId) => {
-    if (socket && isConnected) {
-      socket.emit('unlock-achievement', { achievementId });
     }
   }, [socket, isConnected]);
 
@@ -1159,9 +1323,9 @@ export const useAchievements = (socket, isConnected) => {
     }
   }, [socket, isConnected]);
 
-  const checkAchievements = useCallback(() => {
+  const checkAchievements = useCallback((data) => {
     if (socket && isConnected) {
-      socket.emit('check-achievements', {});
+      socket.emit('check-achievements', data);
     }
   }, [socket, isConnected]);
 
@@ -1177,14 +1341,16 @@ export const useAchievements = (socket, isConnected) => {
     if (!socket || !isConnected) return;
 
     // Achievements List
-    socket.on('achievements-list', (data) => {
-      setAchievements(data.achievements);
-      setIsLoading(false);
-    });
+    // socket.on('achievements-list', (data) => {
+    //   setAchievements(data.achievements);
+    //   setIsLoading(false);
+    // });
 
     // My Achievements
     socket.on('my-achievements', (data) => {
+      setRecentUnlocked(data.achievements.filter(a => a.unlockedAt))
       setMyAchievements(data.achievements);
+      setIsLoading(false);
     });
 
     // Achievement Unlocked (single)
@@ -1232,9 +1398,11 @@ export const useAchievements = (socket, isConnected) => {
       setIsLoading(false);
     });
 
+    getMyAchievements();
+
     // Cleanup
     return () => {
-      socket.off('achievements-list');
+      // socket.off('achievements-list');
       socket.off('my-achievements');
       socket.off('achievement-unlocked');
       socket.off('achievements-unlocked-batch');
@@ -1242,42 +1410,41 @@ export const useAchievements = (socket, isConnected) => {
       socket.off('achievement-check-complete');
       socket.off('achievement-error');
     };
-  }, [socket, isConnected, getAchievements]);
+  }, [socket, isConnected]);
 
-  // Calculate achievement statistics
+  // Calculate achievement statistics directly from myAchievements
   const achievementStats = {
-    total: achievements.length,
-    unlocked: myAchievements.length,
-    locked: achievements.length - myAchievements.length,
-    percentage: achievements.length > 0 
-      ? Math.round((myAchievements.length / achievements.length) * 100) 
+    total: myAchievements.length,
+    unlocked: myAchievements.filter(a => a.unlockedAt).length,
+    locked: myAchievements.filter(a => !a.unlockedAt).length,
+    percentage: myAchievements.length > 0
+      ? Math.round(
+          (myAchievements.filter(a => a.unlockedAt).length / myAchievements.length) * 100
+        )
       : 0,
-    totalPoints: myAchievements.reduce((sum, ua) => 
-      sum + (ua.achievement?.points || 0), 0
-    ),
-    byCategory: achievements.reduce((acc, achievement) => {
-      const category = achievement.category || 'other';
-      if (!acc[category]) {
-        acc[category] = { total: 0, unlocked: 0 };
-      }
+    totalPoints: myAchievements
+      .filter(a => a.unlockedAt)
+      .reduce((sum, a) => sum + (a.achievement?.points || 0), 0),
+
+    // Group by category
+    byCategory: myAchievements.reduce((acc, a) => {
+      const category = a.achievement?.category || 'other';
+      if (!acc[category]) acc[category] = { total: 0, unlocked: 0 };
       acc[category].total += 1;
-      if (myAchievements.some(ua => ua.achievementId === achievement.achievementId)) {
-        acc[category].unlocked += 1;
-      }
+      if (a.unlockedAt) acc[category].unlocked += 1;
       return acc;
     }, {}),
-    byRarity: achievements.reduce((acc, achievement) => {
-      const rarity = achievement.rarity || 'common';
-      if (!acc[rarity]) {
-        acc[rarity] = { total: 0, unlocked: 0 };
-      }
+
+    // Group by rarity
+    byRarity: myAchievements.reduce((acc, a) => {
+      const rarity = a.achievement?.rarity || 'common';
+      if (!acc[rarity]) acc[rarity] = { total: 0, unlocked: 0 };
       acc[rarity].total += 1;
-      if (myAchievements.some(ua => ua.achievementId === achievement.achievementId)) {
-        acc[rarity].unlocked += 1;
-      }
+      if (a.unlockedAt) acc[rarity].unlocked += 1;
       return acc;
-    }, {})
+    }, {}),
   };
+
 
   return {
     // State
@@ -1288,9 +1455,7 @@ export const useAchievements = (socket, isConnected) => {
     isLoading,
     
     // Actions
-    getAchievements,
     getMyAchievements,
-    unlockAchievement,
     updateAchievementProgress,
     checkAchievements,
     getAchievementDetails
